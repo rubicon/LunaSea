@@ -1,44 +1,55 @@
-import 'dart:async';
+import 'package:device_preview/device_preview.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/database.dart';
+import 'package:lunasea/firebase/core.dart';
+import 'package:lunasea/router/router.dart';
+import 'package:lunasea/system/cache/image/image_cache.dart';
+import 'package:lunasea/system/cache/memory/memory_store.dart';
+import 'package:lunasea/system/in_app_purchase/in_app_purchase.dart';
+import 'package:lunasea/system/localization.dart';
+import 'package:lunasea/system/network/network.dart';
+import 'package:lunasea/system/recovery_mode/main.dart';
+import 'package:lunasea/system/sentry.dart';
+import 'package:lunasea/system/window_manager/window_manager.dart';
+import 'package:lunasea/system/platform.dart';
 
-import 'modules/dashboard.dart';
-
-/// LunaSea Entry Point: Initialize & Run Application
+/// LunaSea Entry Point: Bootstrap & Run Application
 ///
 /// Runs app in guarded zone to attempt to capture fatal (crashing) errors
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   runZonedGuarded(
     () async {
-      //LunaSea initialization
-      await Database().initialize();
-      await LunaFirebase().initialize();
-      LunaLogger().initialize();
-      LunaTheme().initialize();
-      await LunaDesktopWindow().initialize();
-      LunaNetworking().initialize();
-      LunaImageCache().initialize();
-      LunaRouter().initialize();
-      await LunaInAppPurchases().initialize();
-      await LunaLocalization().initialize();
+      WidgetsFlutterBinding.ensureInitialized();
 
-      // Launch application
-      LunaLocalization localization = LunaLocalization();
-      return runApp(
-        EasyLocalization(
-          supportedLocales: localization.supportedLocales as List<Locale>,
-          path: localization.fileDirectory,
-          fallbackLocale: localization.fallbackLocale,
-          startLocale: localization.fallbackLocale,
-          useFallbackTranslations: true,
-          child: const LunaBIOS(),
-        ),
-      );
+      try {
+        await bootstrap();
+        runApp(const LunaBIOS());
+      } catch (error) {
+        runApp(const LunaRecoveryMode());
+      }
     },
     (error, stack) => LunaLogger().critical(error, stack),
   );
+}
+
+/// Bootstrap the core
+///
+Future<void> bootstrap() async {
+  await LunaSentry().initialize();
+  await LunaDatabase().initialize();
+  LunaLogger().initialize();
+  if (LunaFirebase.isSupported) await LunaFirebase().initialize();
+  LunaTheme().initialize();
+  if (LunaWindowManager.isSupported) await LunaWindowManager().initialize();
+  if (LunaNetwork.isSupported) LunaNetwork().initialize();
+  if (LunaImageCache.isSupported) LunaImageCache().initialize();
+  LunaRouter().initialize();
+  if (LunaInAppPurchase.isSupported) LunaInAppPurchase().initialize();
+  await LunaLocalization().initialize();
+  await LunaMemoryStore().initialize();
 }
 
 class LunaBIOS extends StatelessWidget {
@@ -48,73 +59,40 @@ class LunaBIOS extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = LunaTheme();
+    final router = LunaRouter.router;
+
     return LunaState.providers(
-      child: ValueListenableBuilder(
-        valueListenable: Database.lunasea.box.listenable(keys: [
-          LunaDatabaseValue.THEME_AMOLED.key,
-          LunaDatabaseValue.THEME_AMOLED_BORDER.key,
-        ]),
-        builder: (context, dynamic box, _) {
-          return Layout(
-            child: MaterialApp(
-              localizationsDelegates: context.localizationDelegates,
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              routes: LunaRouter().routes,
-              onGenerateRoute: LunaRouter.router.generator,
-              navigatorKey: LunaState.navigatorKey,
-              darkTheme: LunaTheme().activeTheme(),
-              theme: LunaTheme().activeTheme(),
-              title: 'LunaSea',
-            ),
-          );
-        },
+      child: DevicePreview(
+        enabled: kDebugMode && LunaPlatform.isDesktop,
+        builder: (context) => EasyLocalization(
+          supportedLocales: LunaLocalization().supportedLocales(),
+          path: LunaLocalization.fileDirectory,
+          fallbackLocale: LunaLocalization.fallbackLocale,
+          startLocale: LunaLocalization.fallbackLocale,
+          useFallbackTranslations: true,
+          child: LunaBox.lunasea.listenableBuilder(
+            selectItems: [
+              LunaSeaDatabase.THEME_AMOLED,
+              LunaSeaDatabase.THEME_AMOLED_BORDER,
+            ],
+            builder: (context, _) {
+              return MaterialApp.router(
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                builder: DevicePreview.appBuilder,
+                darkTheme: theme.activeTheme(),
+                theme: theme.activeTheme(),
+                title: 'LunaSea',
+                routeInformationProvider: router.routeInformationProvider,
+                routeInformationParser: router.routeInformationParser,
+                routerDelegate: router.routerDelegate,
+              );
+            },
+          ),
+        ),
       ),
     );
   }
-}
-
-class LunaOS extends StatefulWidget {
-  const LunaOS({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _State();
-}
-
-class _State extends State<LunaOS> {
-  @override
-  void initState() {
-    super.initState();
-    SchedulerBinding.instance!.addPostFrameCallback((_) => _boot());
-  }
-
-  Future<void> _initNotifications() async {
-    LunaFirebaseMessaging _messaging = LunaFirebaseMessaging();
-    LunaFirebaseFirestore _firestore = LunaFirebaseFirestore();
-    await _messaging.requestNotificationPermissions();
-
-    _firestore.addDeviceToken();
-    _messaging.checkAndHandleInitialMessage();
-    _messaging.registerOnMessageListener();
-    _messaging.registerOnMessageOpenedAppListener();
-  }
-
-  Future<void> _boot() async {
-    _initNotifications();
-
-    String? tag = LunaLanguage.ENGLISH.fromLocale(context.locale)?.languageTag;
-    tag ??= LunaLanguage.ENGLISH.languageTag;
-    Intl.defaultLocale = tag;
-
-    LunaQuickActions().initialize();
-    LunaChangelogSheet().show(
-      context: LunaState.navigatorKey.currentContext,
-      checkBuildNumber: true,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => DashboardHomeRouter().widget();
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sabnzbd.dart';
+import 'package:lunasea/router/routes/sabnzbd.dart';
 
 class SABnzbdHistoryTile extends StatefulWidget {
   final SABnzbdHistoryData data;
@@ -35,9 +37,9 @@ class _State extends State<SABnzbdHistoryTile> {
   TextSpan _subtitle1() {
     return TextSpan(children: [
       TextSpan(text: widget.data.completeTimeString),
-      TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+      TextSpan(text: LunaUI.TEXT_BULLET.pad()),
       TextSpan(text: widget.data.sizeReadable),
-      TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+      TextSpan(text: LunaUI.TEXT_BULLET.pad()),
       TextSpan(text: widget.data.category),
     ]);
   }
@@ -87,19 +89,9 @@ class _State extends State<SABnzbdHistoryTile> {
   }
 
   Future<void> _enterStages() async {
-    final dynamic result = await Navigator.of(context).pushNamed(
-      SABnzbdHistoryStages.ROUTE_NAME,
-      arguments: SABnzbdHistoryStagesArguments(data: widget.data),
+    return SABnzbdRoutes.HISTORY_STAGES.go(
+      extra: widget.data,
     );
-    if (result != null)
-      switch (result[0]) {
-        case 'delete':
-          _handleRefresh('History Deleted');
-          break;
-        default:
-          LunaLogger().warning('SABnzbdHistoryTile', '_enterDetails',
-              'Unknown Case: ${result[0]}');
-      }
   }
 
   Future<void> _handlePopup() async {
@@ -117,8 +109,7 @@ class _State extends State<SABnzbdHistoryTile> {
           _delete();
           break;
         default:
-          LunaLogger().warning('SABnzbdHistoryTile', '_handlePopup',
-              'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 

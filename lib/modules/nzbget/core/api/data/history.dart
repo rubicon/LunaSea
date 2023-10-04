@@ -1,7 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
 
 class NZBGetHistoryData {
   int id;
@@ -38,12 +38,12 @@ class NZBGetHistoryData {
       return '0.00 MB/s';
     } else {
       int speed = (downloaded / downloadTime).floor();
-      return '${speed.lunaBytesToString()}/s';
+      return '${speed.asBytes()}/s';
     }
   }
 
   String get sizeReadable {
-    return downloaded.lunaBytesToString();
+    return downloaded.asBytes();
   }
 
   DateTime? get timestampObject {
@@ -53,7 +53,7 @@ class NZBGetHistoryData {
   }
 
   String get completeTime {
-    return timestampObject?.lunaAge ?? 'Unknown';
+    return timestampObject?.asAge() ?? 'Unknown';
   }
 
   String get healthString {

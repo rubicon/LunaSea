@@ -1,3 +1,6 @@
+import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
+
 class SABnzbdQueueData {
   String name;
   String nzoId;
@@ -35,7 +38,8 @@ class SABnzbdQueueData {
             ? '―'
             : timeLeft;
     String size = '${sizeTotal - sizeLeft}/$sizeTotal MB';
-    return '$time\t•\t$size\t•\t$percentageDone%\t•\t$formattedCategory';
+    String paddedBullet = LunaUI.TEXT_BULLET.pad();
+    return '$time$paddedBullet$size$paddedBullet$percentageDone%$paddedBullet$formattedCategory';
   }
 
   bool get isPaused {

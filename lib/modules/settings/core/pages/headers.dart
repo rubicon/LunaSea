@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules.dart';
+import 'package:lunasea/modules/overseerr.dart';
+import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/modules/tautulli.dart';
 
 class SettingsHeaderRoute extends StatefulWidget {
   final LunaModule module;
@@ -49,12 +53,11 @@ class _State extends State<SettingsHeaderRoute> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic profile, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
-          if ((_headers() ?? {}).isEmpty) _noHeadersFound(),
+          if ((_headers()).isEmpty) _noHeadersFound(),
           ..._headerList(),
         ],
       ),
@@ -65,7 +68,7 @@ class _State extends State<SettingsHeaderRoute> with LunaScrollControllerMixin {
       LunaMessage.inList(text: 'settings.NoHeadersAdded'.tr());
 
   List<LunaBlock> _headerList() {
-    Map<String, dynamic> headers = (_headers() ?? {}).cast<String, dynamic>();
+    final headers = _headers();
     List<String> _sortedKeys = headers.keys.toList()..sort();
     return _sortedKeys
         .map<LunaBlock>((key) => _headerBlock(key, headers[key]))
@@ -90,7 +93,7 @@ class _State extends State<SettingsHeaderRoute> with LunaScrollControllerMixin {
     );
   }
 
-  Map<dynamic, dynamic>? _headers() {
+  Map<String, String> _headers() {
     switch (widget.module) {
       case LunaModule.DASHBOARD:
         throw Exception('Dashboard does not have a headers page');
@@ -122,9 +125,9 @@ class _State extends State<SettingsHeaderRoute> with LunaScrollControllerMixin {
   Future<void> _resetState() async {
     switch (widget.module) {
       case LunaModule.DASHBOARD:
-        throw Exception('Dashboard does not have a headers page');
+        throw Exception('Dashboard does not have a global state');
       case LunaModule.EXTERNAL_MODULES:
-        throw Exception('External modules do not have a headers page');
+        throw Exception('External modules do not have a global state');
       case LunaModule.LIDARR:
         return;
       case LunaModule.RADARR:
@@ -136,11 +139,11 @@ class _State extends State<SettingsHeaderRoute> with LunaScrollControllerMixin {
       case LunaModule.NZBGET:
         return;
       case LunaModule.SEARCH:
-        throw Exception('Search does not have a headers page');
+        throw Exception('Search does not have a global state');
       case LunaModule.SETTINGS:
-        throw Exception('Settings does not have a headers page');
+        throw Exception('Settings does not have a global state');
       case LunaModule.WAKE_ON_LAN:
-        throw Exception('Wake on LAN does not have a headers page');
+        throw Exception('Wake on LAN does not have a global state');
       case LunaModule.TAUTULLI:
         return context.read<TautulliState>().reset();
       case LunaModule.OVERSEERR:

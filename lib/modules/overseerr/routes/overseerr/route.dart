@@ -2,24 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/overseerr.dart';
 
-class OverseerrHomeRouter extends OverseerrPageRouter {
-  OverseerrHomeRouter() : super('/overseerr');
+class OverseerrRoute extends StatefulWidget {
+  const OverseerrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router, homeRoute: true);
-  }
+  State<OverseerrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> {
+class _State extends State<OverseerrRoute> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
 
@@ -27,7 +19,7 @@ class _State extends State<_Widget> {
   void initState() {
     super.initState();
     _pageController = LunaPageController(
-      initialPage: OverseerrDatabaseValue.NAVIGATION_INDEX.data,
+      initialPage: OverseerrDatabase.NAVIGATION_INDEX.read(),
     );
   }
 
@@ -37,7 +29,7 @@ class _State extends State<_Widget> {
       scaffoldKey: _scaffoldKey,
       module: LunaModule.OVERSEERR,
       drawer: _drawer(),
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       bottomNavigationBar: _bottomNavigationBar(),
       body: _body(),
     );
@@ -48,26 +40,26 @@ class _State extends State<_Widget> {
   }
 
   Widget? _bottomNavigationBar() {
-    if (context.read<OverseerrState>().enabled!) {
+    if (context.read<OverseerrState>().enabled) {
       return OverseerrNavigationBar(pageController: _pageController);
     }
     return null;
   }
 
-  Widget _appBar() {
-    List<String> profiles = Database.profiles.box.keys.fold(
+  PreferredSizeWidget _appBar() {
+    List<String> profiles = LunaBox.profiles.keys.fold(
       [],
       (value, element) {
-        if (Database.profiles.box.get(element)?.overseerrEnabled ?? false) {
+        if (LunaBox.profiles.read(element)!.overseerrEnabled) {
           value.add(element);
         }
         return value;
       },
     );
     List<Widget>? actions;
-    if (context.watch<OverseerrState>().enabled!) actions = [];
+    if (context.watch<OverseerrState>().enabled) actions = [];
     return LunaAppBar.dropdown(
-      title: LunaModule.OVERSEERR.name,
+      title: LunaModule.OVERSEERR.title,
       useDrawer: true,
       profiles: profiles,
       actions: actions,
@@ -83,13 +75,14 @@ class _State extends State<_Widget> {
         if (!enabled!) {
           return LunaMessage.moduleNotEnabled(
             context: context,
-            module: 'Overseerr',
+            module: LunaModule.OVERSEERR.title,
           );
         }
         return LunaPageView(
           controller: _pageController,
           children: const [
             OverseerrRequestsRoute(),
+            OverseerrIssuesRoute(),
             OverseerrUserRoute(),
           ],
         );

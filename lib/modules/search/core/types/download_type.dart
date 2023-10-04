@@ -3,6 +3,7 @@ import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/nzbget.dart';
 import 'package:lunasea/modules/sabnzbd.dart';
 import 'package:lunasea/modules/search.dart';
+import 'package:lunasea/system/filesystem/filesystem.dart';
 
 enum SearchDownloadType {
   NZBGET,
@@ -95,8 +96,11 @@ extension SearchDownloadTypeExtension on SearchDownloadType {
           .api
           .downloadRelease(data)
           .then((download) async {
-        bool result = await LunaFileSystem()
-            .export(context, '$cleanTitle.nzb', utf8.encode(download!));
+        bool result = await LunaFileSystem().save(
+          context,
+          '$cleanTitle.nzb',
+          utf8.encode(download!),
+        );
         if (result)
           showLunaSuccessSnackBar(
               title: 'Saved NZB', message: 'NZB has been successfully saved');

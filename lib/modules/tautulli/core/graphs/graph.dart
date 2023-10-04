@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
@@ -11,7 +10,7 @@ class TautulliGraphHelper {
 
   BarChartAlignment chartAlignment() => BarChartAlignment.spaceEvenly;
 
-  FlGridData gridData() => FlGridData(show: false);
+  FlGridData gridData() => const FlGridData(show: false);
 
   FlBorderData borderData() => FlBorderData(
         show: true,
@@ -22,33 +21,46 @@ class TautulliGraphHelper {
     TautulliGraphData data, {
     int maxTitleLength = DEFAULT_MAX_TITLE_LENGTH,
     bool titleOverFlowShowEllipsis = true,
-  }) =>
-      FlTitlesData(
-        leftTitles: SideTitles(showTitles: false),
-        rightTitles: SideTitles(showTitles: false),
-        topTitles: SideTitles(showTitles: false),
-        bottomTitles: SideTitles(
+  }) {
+    String _getTitle(double value) {
+      return data.categories![value.truncate()]!.length > maxTitleLength + 1
+          ? [
+              data.categories![value.truncate()]!
+                  .substring(
+                      0,
+                      min(maxTitleLength,
+                          data.categories![value.truncate()]!.length))
+                  .toUpperCase(),
+              if (titleOverFlowShowEllipsis) LunaUI.TEXT_ELLIPSIS,
+            ].join()
+          : data.categories![value.truncate()]!.toUpperCase();
+    }
+
+    return FlTitlesData(
+      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      bottomTitles: AxisTitles(
+        sideTitles: SideTitles(
           showTitles: true,
-          margin: 8.0,
-          reservedSize: 8.0,
-          getTitles: (value) =>
-              data.categories![value.truncate()]!.length > maxTitleLength + 1
-                  ? [
-                      data.categories![value.truncate()]!
-                          .substring(
-                              0,
-                              min(maxTitleLength,
-                                  data.categories![value.truncate()]!.length))
-                          .toUpperCase(),
-                      if (titleOverFlowShowEllipsis) LunaUI.TEXT_ELLIPSIS,
-                    ].join()
-                  : data.categories![value.truncate()]!.toUpperCase(),
-          getTextStyles: (_, __) => const TextStyle(
-            color: LunaColours.grey,
-            fontSize: LunaUI.FONT_SIZE_GRAPH_LEGEND,
-          ),
+          reservedSize:
+              LunaUI.FONT_SIZE_GRAPH_LEGEND + LunaUI.DEFAULT_MARGIN_SIZE,
+          getTitlesWidget: (value, meta) {
+            return Padding(
+              padding: const EdgeInsets.only(top: LunaUI.DEFAULT_MARGIN_SIZE),
+              child: Text(
+                _getTitle(value),
+                style: const TextStyle(
+                  color: LunaColours.grey,
+                  fontSize: LunaUI.FONT_SIZE_GRAPH_LEGEND,
+                ),
+              ),
+            );
+          },
         ),
-      );
+      ),
+    );
+  }
 
   Widget createLegend(List<TautulliSeriesData> data) {
     return SizedBox(

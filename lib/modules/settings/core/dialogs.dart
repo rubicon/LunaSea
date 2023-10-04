@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/dashboard.dart';
-import 'package:lunasea/modules/settings.dart';
 import 'package:wake_on_lan/wake_on_lan.dart';
+import 'package:lunasea/database/tables/lunasea.dart';
+import 'package:lunasea/firebase/types.dart';
+import 'package:lunasea/modules.dart';
+import 'package:lunasea/modules/dashboard/core/adapters/calendar_starting_day.dart';
+import 'package:lunasea/modules/dashboard/core/adapters/calendar_starting_size.dart';
+import 'package:lunasea/modules/dashboard/core/adapters/calendar_starting_type.dart';
+import 'package:lunasea/modules/settings/core/types/header.dart';
+import 'package:lunasea/system/localization.dart';
+import 'package:lunasea/system/state.dart';
+import 'package:lunasea/utils/validator.dart';
+import 'package:lunasea/vendor.dart';
+import 'package:lunasea/widgets/ui.dart';
 
 class SettingsDialogs {
   Future<Tuple2<bool, int>> setDefaultOption(
@@ -124,23 +133,23 @@ class SettingsDialogs {
       ],
       content: [
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint1'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint2'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint3'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint3'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint4'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint4'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint5'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint5'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -192,19 +201,19 @@ class SettingsDialogs {
       ],
       content: [
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint1'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint2'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint3'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint3'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.HostHint4'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.HostHint4'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -418,17 +427,17 @@ class SettingsDialogs {
       content: [
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BasicAuthenticationHint1'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BasicAuthenticationHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BasicAuthenticationHint2'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BasicAuthenticationHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BasicAuthenticationHint3'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BasicAuthenticationHint3'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -548,6 +557,125 @@ class SettingsDialogs {
     return Tuple2(_flag, _textController.text);
   }
 
+  Future<Tuple3<bool, String, String>> updateAccountEmail(
+    BuildContext context,
+  ) async {
+    final _formKey = GlobalKey<FormState>();
+    final _emailController = TextEditingController();
+    final _passwordController = TextEditingController();
+    bool _flag = false;
+
+    void _setValues(bool flag) {
+      if (_formKey.currentState!.validate()) {
+        _flag = flag;
+        Navigator.of(context).pop();
+      }
+    }
+
+    await LunaDialog.dialog(
+      context: context,
+      title: 'settings.UpdateEmail'.tr(),
+      buttons: [
+        LunaDialog.button(
+          text: 'lunasea.Update'.tr(),
+          onPressed: () => _setValues(true),
+        ),
+      ],
+      content: [
+        Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              LunaDialog.textFormInput(
+                controller: _emailController,
+                title: 'settings.Email'.tr(),
+                onSubmitted: (_) => _setValues(true),
+                validator: (value) {
+                  return LunaValidator().email(value ?? '')
+                      ? null
+                      : 'settings.EmailValidation'.tr();
+                },
+              ),
+              LunaDialog.textFormInput(
+                controller: _passwordController,
+                title: 'settings.CurrentPassword'.tr(),
+                obscureText: true,
+                onSubmitted: (_) => _setValues(true),
+                validator: (value) {
+                  return value?.isEmpty ?? true
+                      ? 'settings.PasswordValidation'.tr()
+                      : null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+      contentPadding: LunaDialog.textDialogContentPadding(),
+    );
+    return Tuple3(_flag, _emailController.text, _passwordController.text);
+  }
+
+  Future<Tuple3<bool, String, String>> updateAccountPassword(
+    BuildContext context,
+  ) async {
+    final _formKey = GlobalKey<FormState>();
+    final _currentPassController = TextEditingController();
+    final _newPassController = TextEditingController();
+    bool _flag = false;
+
+    void _setValues(bool flag) {
+      if (_formKey.currentState!.validate()) {
+        _flag = flag;
+        Navigator.of(context).pop();
+      }
+    }
+
+    await LunaDialog.dialog(
+      context: context,
+      title: 'settings.UpdatePassword'.tr(),
+      buttons: [
+        LunaDialog.button(
+          text: 'lunasea.Update'.tr(),
+          onPressed: () => _setValues(true),
+        ),
+      ],
+      content: [
+        Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              LunaDialog.textFormInput(
+                controller: _currentPassController,
+                title: 'settings.CurrentPassword'.tr(),
+                obscureText: true,
+                onSubmitted: (_) => _setValues(true),
+                validator: (value) {
+                  return value?.isEmpty ?? true
+                      ? 'settings.PasswordValidation'.tr()
+                      : null;
+                },
+              ),
+              LunaDialog.textFormInput(
+                controller: _newPassController,
+                title: 'settings.NewPassword'.tr(),
+                obscureText: true,
+                onSubmitted: (_) => _setValues(true),
+                validator: (value) {
+                  return value?.isEmpty ?? true
+                      ? 'settings.PasswordValidation'.tr()
+                      : null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+      contentPadding: LunaDialog.textDialogContentPadding(),
+    );
+    return Tuple3(_flag, _newPassController.text, _currentPassController.text);
+  }
+
   Future<Tuple2<bool, String>> addProfile(
     BuildContext context,
     List<String?> profiles,
@@ -596,14 +724,14 @@ class SettingsDialogs {
     return Tuple2(_flag, _controller.text);
   }
 
-  Future<Tuple2<bool, String?>> renameProfile(
+  Future<Tuple2<bool, String>> renameProfile(
     BuildContext context,
-    List<String?> profiles,
+    List<String> profiles,
   ) async {
     bool _flag = false;
-    String? _profile = '';
+    String _profile = '';
 
-    void _setValues(bool flag, String? profile) {
+    void _setValues(bool flag, String profile) {
       _flag = flag;
       _profile = profile;
       Navigator.of(context).pop();
@@ -617,7 +745,7 @@ class SettingsDialogs {
         (index) => LunaDialog.tile(
           icon: Icons.settings_rounded,
           iconColor: LunaColours().byListIndex(index),
-          text: profiles[index]!,
+          text: profiles[index],
           onTap: () => _setValues(true, profiles[index]),
         ),
       ),
@@ -674,14 +802,14 @@ class SettingsDialogs {
     return Tuple2(_flag, _controller.text);
   }
 
-  Future<Tuple2<bool, String?>> deleteProfile(
+  Future<Tuple2<bool, String>> deleteProfile(
     BuildContext context,
-    List<String?> profiles,
+    List<String> profiles,
   ) async {
     bool _flag = false;
-    String? _profile = '';
+    String _profile = '';
 
-    void _setValues(bool flag, String? profile) {
+    void _setValues(bool flag, String profile) {
       _flag = flag;
       _profile = profile;
       Navigator.of(context).pop();
@@ -695,7 +823,7 @@ class SettingsDialogs {
         (index) => LunaDialog.tile(
           icon: Icons.settings_rounded,
           iconColor: LunaColours().byListIndex(index),
-          text: profiles[index]!,
+          text: profiles[index],
           onTap: () => _setValues(true, profiles[index]),
         ),
       ),
@@ -704,14 +832,14 @@ class SettingsDialogs {
     return Tuple2(_flag, _profile);
   }
 
-  Future<Tuple2<bool, String?>> enabledProfile(
+  Future<Tuple2<bool, String>> enabledProfile(
     BuildContext context,
-    List<String?> profiles,
+    List<String> profiles,
   ) async {
     bool _flag = false;
-    String? _profile = '';
+    String _profile = '';
 
-    void _setValues(bool flag, String? profile) {
+    void _setValues(bool flag, String profile) {
       _flag = flag;
       _profile = profile;
       Navigator.of(context).pop();
@@ -725,7 +853,7 @@ class SettingsDialogs {
         (index) => LunaDialog.tile(
           icon: LunaIcons.USER,
           iconColor: LunaColours().byListIndex(index),
-          text: profiles[index]!,
+          text: profiles[index],
           onTap: () => _setValues(true, profiles[index]),
         ),
       ),
@@ -734,37 +862,10 @@ class SettingsDialogs {
     return Tuple2(_flag, _profile);
   }
 
-  Future<Tuple2<bool, LunaBrowser?>> changeBrowser(BuildContext context) async {
-    bool _flag = false;
-    LunaBrowser? _browser;
-
-    void _setValues(bool flag, LunaBrowser browser) {
-      _flag = flag;
-      _browser = browser;
-      Navigator.of(context).pop();
-    }
-
-    await LunaDialog.dialog(
-      context: context,
-      title: 'settings.OpenLinksIn'.tr(),
-      content: List.generate(
-        LunaBrowser.values.length,
-        (index) => LunaDialog.tile(
-          icon: LunaBrowser.values[index].icon,
-          iconColor: LunaColours().byListIndex(index),
-          text: LunaBrowser.values[index].name!,
-          onTap: () => _setValues(true, LunaBrowser.values[index]),
-        ),
-      ),
-      contentPadding: LunaDialog.listDialogContentPadding(),
-    );
-    return Tuple2(_flag, _browser);
-  }
-
   Future<Tuple2<bool, LunaLanguage?>> changeLanguage(
     BuildContext context,
   ) async {
-    List<LunaLanguage> languages = LunaLocalization().supportedLanguages;
+    List<LunaLanguage> languages = LunaLocalization().supportedLanguages();
     bool _flag = false;
     LunaLanguage? _language;
 
@@ -916,17 +1017,17 @@ class SettingsDialogs {
       content: [
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BroadcastAddressHint1'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BroadcastAddressHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BroadcastAddressHint2'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BroadcastAddressHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BroadcastAddressHint3'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BroadcastAddressHint3'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -935,7 +1036,7 @@ class SettingsDialogs {
             controller: _controller,
             validator: (address) {
               if (address?.isEmpty ?? true) return null;
-              return IPv4Address.validate(address)
+              return IPAddress.validate(address).state
                   ? null
                   : 'settings.BroadcastAddressValidation'.tr();
             },
@@ -975,19 +1076,19 @@ class SettingsDialogs {
       ],
       content: [
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.MACAddressHint1'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.MACAddressHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.MACAddressHint2'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.MACAddressHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.MACAddressHint3'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.MACAddressHint3'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
-          text: '${LunaUI.TEXT_BULLET}\t${'settings.MACAddressHint4'.tr()}',
+          text: '${LunaUI.TEXT_BULLET} ${'settings.MACAddressHint4'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -996,7 +1097,7 @@ class SettingsDialogs {
             controller: _controller,
             validator: (address) {
               if (address?.isEmpty ?? true) return null;
-              return MACAddress.validate(address)
+              return MACAddress.validate(address).state
                   ? null
                   : 'settings.MACAddressValidation'.tr();
             },
@@ -1162,12 +1263,12 @@ class SettingsDialogs {
       content: [
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BackupConfigurationHint1'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BackupConfigurationHint1'.tr()}',
           textAlign: TextAlign.left,
         ),
         LunaDialog.textContent(
           text:
-              '${LunaUI.TEXT_BULLET}\t${'settings.BackupConfigurationHint2'.tr()}',
+              '${LunaUI.TEXT_BULLET} ${'settings.BackupConfigurationHint2'.tr()}',
           textAlign: TextAlign.left,
         ),
         Form(
@@ -1188,60 +1289,6 @@ class SettingsDialogs {
     return Tuple2(_flag, _textController.text);
   }
 
-  Future<bool> disableCrashlyticsWarning(BuildContext context) async {
-    bool _flag = false;
-
-    void _setValues(bool flag) {
-      _flag = flag;
-      Navigator.of(context).pop();
-    }
-
-    await LunaDialog.dialog(
-      context: context,
-      title: 'settings.FirebaseCrashlytics'.tr(),
-      buttons: [
-        LunaDialog.button(
-          text: 'lunasea.Website'.tr(),
-          onPressed: LunaLinks.CRASHLYTICS.launch,
-          textColor: LunaColours.accent,
-        ),
-        LunaDialog.button(
-          text: 'lunasea.Disable'.tr(),
-          onPressed: () => _setValues(true),
-          textColor: LunaColours.red,
-        ),
-      ],
-      content: [
-        LunaDialog.richText(
-          children: [
-            LunaDialog.bolded(
-              text: '${'settings.FirebaseCrashlyticsHint1'.tr()}\n\n',
-              color: LunaColours.red,
-              fontSize: LunaDialog.BUTTON_SIZE,
-            ),
-            LunaDialog.textSpanContent(
-              text: '${'settings.FirebaseCrashlyticsHint2'.tr()}\n\n',
-            ),
-            LunaDialog.textSpanContent(
-              text: '${'settings.FirebaseCrashlyticsHint3'.tr()}\n\n',
-            ),
-            LunaDialog.textSpanContent(
-              text: '${'settings.FirebaseCrashlyticsHint4'.tr()}\n\n',
-            ),
-            LunaDialog.bolded(
-              text: 'settings.FirebaseCrashlyticsHint5'.tr(),
-              color: LunaColours.accent,
-              fontSize: LunaDialog.BUTTON_SIZE,
-            ),
-          ],
-          alignment: TextAlign.center,
-        ),
-      ],
-      contentPadding: LunaDialog.textDialogContentPadding(),
-    );
-    return _flag;
-  }
-
   Future<Tuple2<bool, int>> changeBackgroundImageOpacity(
     BuildContext context,
   ) async {
@@ -1249,7 +1296,7 @@ class SettingsDialogs {
     int _opacity = 0;
     final _formKey = GlobalKey<FormState>();
     final _textController = TextEditingController()
-      ..text = LunaDatabaseValue.THEME_IMAGE_BACKGROUND_OPACITY.data.toString();
+      ..text = LunaSeaDatabase.THEME_IMAGE_BACKGROUND_OPACITY.read().toString();
 
     void _setValues(bool flag) {
       if (_formKey.currentState!.validate()) {
@@ -1307,5 +1354,42 @@ class SettingsDialogs {
       content: [LunaDialog.textContent(text: 'settings.AccountHelpHint1'.tr())],
       contentPadding: LunaDialog.textDialogContentPadding(),
     );
+  }
+
+  Future<Tuple2<bool, LunaModule?>> selectBootModule() async {
+    final context = LunaState.context;
+    bool _flag = false;
+    LunaModule? _module;
+
+    void _setValues(LunaModule module) {
+      _flag = true;
+      _module = module;
+      Navigator.of(context).pop();
+    }
+
+    final modules = LunaModule.values.filter((module) {
+      final enabled = module.isEnabled;
+      final featureFlag = module.featureFlag;
+      final homeRoute = module.homeRoute != null;
+
+      return homeRoute && enabled && featureFlag;
+    }).toList();
+
+    await LunaDialog.dialog(
+      context: context,
+      title: 'settings.BootModule'.tr(),
+      content: List.generate(
+        modules.length,
+        (index) => LunaDialog.tile(
+          text: modules[index].title,
+          icon: modules[index].icon,
+          iconColor: modules[index].color,
+          onTap: () => _setValues(modules[index]),
+        ),
+      ),
+      contentPadding: LunaDialog.listDialogContentPadding(),
+    );
+
+    return Tuple2(_flag, _module);
   }
 }

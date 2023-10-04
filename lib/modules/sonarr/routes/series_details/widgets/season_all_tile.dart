@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrSeriesDetailsSeasonAllTile extends StatelessWidget {
   final SonarrSeries? series;
@@ -20,18 +22,18 @@ class SonarrSeriesDetailsSeasonAllTile extends StatelessWidget {
         _subtitle2(),
       ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SonarrSeasonDetailsRouter().navigateTo(
-        context,
-        series?.id ?? -1,
-        -1,
-      ),
+      onTap: () async {
+        SonarrRoutes.SERIES_SEASON.go(params: {
+          'series': (series?.id ?? -1).toString(),
+          'season': '-1',
+        });
+      },
     );
   }
 
   TextSpan _subtitle1() {
     return TextSpan(
-      text: series?.statistics?.sizeOnDisk?.lunaBytesToString(decimals: 1) ??
-          '0.0B',
+      text: series?.statistics?.sizeOnDisk?.asBytes(decimals: 1) ?? '0.0B',
     );
   }
 

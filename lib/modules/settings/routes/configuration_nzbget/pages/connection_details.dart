@@ -2,27 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/nzbget.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationNZBGetConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationNZBGetConnectionDetailsRouter()
-      : super('/settings/configuration/nzbget/connection');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationNZBGetConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationNZBGetConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationNZBGetConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationNZBGetConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -37,7 +29,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -51,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -66,7 +57,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.nzbgetHost ?? '';
+    String host = LunaProfile.current.nzbgetHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -86,7 +77,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _username() {
-    String username = LunaProfile.current.nzbgetUser ?? '';
+    String username = LunaProfile.current.nzbgetUser;
     return LunaBlock(
       title: 'settings.Username'.tr(),
       body: [
@@ -109,7 +100,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _password() {
-    String password = LunaProfile.current.nzbgetPass ?? '';
+    String password = LunaProfile.current.nzbgetPass;
     return LunaBlock(
       title: 'settings.Password'.tr(),
       body: [
@@ -127,13 +118,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
           prefill: password,
           extraText: [
             LunaDialog.textSpanContent(
-              text:
-                  '${LunaUI.TEXT_BULLET}\tIf your password includes special characters, considering adding a ',
+              text: '${LunaUI.TEXT_BULLET} ${'settings.PasswordHint1'.tr()}',
             ),
-            LunaDialog.bolded(text: 'basic authentication'),
-            LunaDialog.textSpanContent(
-                text:
-                    ' header with your username and password instead for better support'),
           ],
         );
         if (_values.item1) {
@@ -150,24 +136,26 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       text: 'settings.TestConnection'.tr(),
       icon: LunaIcons.CONNECTION_TEST,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.nzbgetHost == null || _profile.nzbgetHost!.isEmpty) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.nzbgetHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to NZBGet',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.NZBGET.title]),
           );
           return;
         }
         NZBGetAPI.from(LunaProfile.current)
             .testConnection()
             .then((_) => showLunaSuccessSnackBar(
-                  title: 'Connected Successfully',
-                  message: 'NZBGet is ready to use with LunaSea',
+                  title: 'settings.ConnectedSuccessfully'.tr(),
+                  message: 'settings.ConnectedSuccessfullyMessage'
+                      .tr(args: [LunaModule.NZBGET.title]),
                 ))
             .catchError((error, trace) {
           LunaLogger().error('Connection Test Failed', error, trace);
           showLunaErrorSnackBar(
-            title: 'Connection Test Failed',
+            title: 'settings.ConnectionTestFailed'.tr(),
             error: error,
           );
         });
@@ -180,9 +168,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async {
-        SettingsConfigurationNZBGetHeadersRouter().navigateTo(context);
-      },
+      onTap: SettingsRoutes.CONFIGURATION_NZBGET_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

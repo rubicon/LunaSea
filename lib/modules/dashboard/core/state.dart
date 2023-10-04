@@ -1,5 +1,11 @@
-import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/dashboard.dart';
+import 'package:lunasea/database/tables/dashboard.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/modules/dashboard/core/adapters/calendar_starting_size.dart';
+import 'package:lunasea/modules/dashboard/core/adapters/calendar_starting_type.dart';
+import 'package:lunasea/modules/dashboard/core/api/api.dart';
+import 'package:lunasea/modules/dashboard/core/api/data/abstract.dart';
+import 'package:lunasea/system/state.dart';
+import 'package:lunasea/vendor.dart';
 
 class DashboardState extends LunaModuleState {
   DashboardState() {
@@ -13,26 +19,33 @@ class DashboardState extends LunaModuleState {
     resetUpcoming();
   }
 
-  CalendarStartingType _calendarStartingType =
-      DashboardDatabaseValue.CALENDAR_STARTING_TYPE.data;
-  CalendarStartingType get calendarStartingType => _calendarStartingType;
-  set calendarStartingType(CalendarStartingType calendarStartingType) {
-    _calendarStartingType = calendarStartingType;
+  CalendarStartingType _calendarType =
+      DashboardDatabase.CALENDAR_STARTING_TYPE.read();
+  CalendarStartingType get calendarType => _calendarType;
+  set calendarType(CalendarStartingType calendarStartingType) {
+    _calendarType = calendarStartingType;
     notifyListeners();
   }
 
-  CalendarAPI? _api;
-  CalendarAPI? get api => _api;
+  CalendarFormat _calendarFormat =
+      DashboardDatabase.CALENDAR_STARTING_SIZE.read().data;
+  CalendarFormat get calendarFormat => _calendarFormat;
+  set calendarFormat(CalendarFormat calendarFormat) {
+    _calendarFormat = calendarFormat;
+    notifyListeners();
+  }
+
+  API? _api;
+  API? get api => _api;
   void resetAPI() {
-    ProfileHiveObject? _profile = LunaProfile.current;
-    _api = CalendarAPI.from(_profile);
+    _api = API();
     notifyListeners();
   }
 
-  DateTime? _today;
-  DateTime? get today => _today;
+  DateTime _today = DateTime.now().floor();
+  DateTime get today => _today;
   void resetToday() {
-    _today = DateTime.now();
+    _today = DateTime.now().floor();
     notifyListeners();
   }
 
@@ -40,6 +53,13 @@ class DashboardState extends LunaModuleState {
   Future<Map<DateTime, List<CalendarData>>>? get upcoming => _upcoming;
   void resetUpcoming() {
     if (_api != null) _upcoming = _api!.getUpcoming(DateTime.now());
+    notifyListeners();
+  }
+
+  DateTime _selected = DateTime.now().floor();
+  DateTime get selected => _selected;
+  set selected(DateTime selected) {
+    _selected = selected;
     notifyListeners();
   }
 }

@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/system/cache/memory/memory_cache.dart';
 
 class SonarrSeasonDetailsState extends ChangeNotifier {
   final int seriesId;
@@ -47,21 +47,15 @@ class SonarrSeasonDetailsState extends ChangeNotifier {
     notifyListeners();
   }
 
-  final LunaLRUCache _episodeHistoryCache = LunaLRUCache(
+  final _episodeHistoryCache = LunaMemoryCache<Future<SonarrHistoryPage>>(
     maxEntries: 10,
     module: LunaModule.SONARR,
     id: 'episode_history_cache',
   );
 
-  LunaLRUCache get episodeHistoryCache => _episodeHistoryCache;
-  set episodeHistoryCache(LunaLRUCache episodeHistoryCache) {
-    episodeHistoryCache = episodeHistoryCache;
-    notifyListeners();
-  }
-
   Future<void> fetchEpisodeHistory(BuildContext context, int? episodeId) async {
     if (context.read<SonarrState>().enabled) {
-      episodeHistoryCache.put(
+      _episodeHistoryCache.put(
         episodeId.toString(),
         context.read<SonarrState>().api!.history.get(
               pageSize: 1000,
@@ -72,10 +66,9 @@ class SonarrSeasonDetailsState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<SonarrHistory> getEpisodeHistory(int? episodeId) async {
-    return episodeHistoryCache
-        .get(episodeId.toString())
-        .then((data) => data as SonarrHistory);
+  Future<SonarrHistoryPage?> getEpisodeHistory(int episodeId) async {
+    String id = episodeId.toString();
+    return await _episodeHistoryCache.get(id);
   }
 
   Future<Map<int, SonarrEpisode>>? _episodes;
@@ -136,7 +129,7 @@ class SonarrSeasonDetailsState extends ChangeNotifier {
   void cancelQueueTimer() => _queueTimer?.cancel();
   void createQueueTimer(BuildContext context) {
     _queueTimer = Timer.periodic(
-      Duration(seconds: SonarrDatabaseValue.QUEUE_REFRESH_RATE.data),
+      Duration(seconds: SonarrDatabase.QUEUE_REFRESH_RATE.read()),
       (_) => fetchQueue(context),
     );
   }
@@ -186,6 +179,40 @@ class SonarrSeasonDetailsState extends ChangeNotifier {
       });
       createQueueTimer(context);
     }
+    notifyListeners();
+  }
+
+  final Set<int> selectedEpisodes = {};
+
+  void toggleSelectedEpisode(SonarrEpisode episode) {
+    final id = episode.id!;
+    if (selectedEpisodes.contains(id)) {
+      selectedEpisodes.remove(id);
+    } else {
+      selectedEpisodes.add(id);
+    }
+
+    notifyListeners();
+  }
+
+  void clearSelectedEpisodes() {
+    selectedEpisodes.clear();
+    notifyListeners();
+  }
+
+  Future<void> toggleSeasonEpisodes(int seasonNumber) async {
+    final eps = (await episodes)!
+        .filter((ep) => ep.value.seasonNumber == seasonNumber)
+        .map((ep) => ep.value.id!)
+        .toList();
+    final allSelected = eps.every(selectedEpisodes.contains);
+
+    if (allSelected) {
+      selectedEpisodes.removeAll(eps);
+    } else {
+      selectedEpisodes.addAll(eps);
+    }
+
     notifyListeners();
   }
 }

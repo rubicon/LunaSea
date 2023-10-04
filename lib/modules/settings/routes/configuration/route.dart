@@ -1,26 +1,20 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules.dart';
+import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
+import 'package:lunasea/system/quick_actions/quick_actions.dart';
+import 'package:lunasea/utils/profile_tools.dart';
 
-class SettingsConfigurationRouter extends SettingsPageRouter {
-  SettingsConfigurationRouter() : super('/settings/configuration');
+class ConfigurationRoute extends StatefulWidget {
+  const ConfigurationRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationRoute> with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -36,21 +30,40 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaAppBar(
       title: 'settings.Configuration'.tr(),
       scrollControllers: [scrollController],
-      actions: [
-        LunaIconButton(
+      actions: [_enabledProfile()],
+    );
+  }
+
+  Widget _enabledProfile() {
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) {
+        if (LunaBox.profiles.size < 2) return const SizedBox();
+        return LunaIconButton(
           icon: Icons.switch_account_rounded,
           onPressed: () async {
-            Tuple2<bool, String?> results =
-                await SettingsDialogs().enabledProfile(
-              LunaState.navigatorKey.currentContext!,
-              LunaProfile().profilesList(),
+            final dialogs = SettingsDialogs();
+            final enabledProfile = LunaSeaDatabase.ENABLED_PROFILE.read();
+            final profiles = LunaProfile.list;
+            profiles.removeWhere((p) => p == enabledProfile);
+
+            if (profiles.isEmpty) {
+              showLunaInfoSnackBar(
+                title: 'settings.NoProfilesFound'.tr(),
+                message: 'settings.NoAdditionalProfilesAdded'.tr(),
+              );
+              return;
+            }
+
+            final selected = await dialogs.enabledProfile(
+              LunaState.context,
+              profiles,
             );
-            if (results.item1 &&
-                results.item2 != LunaDatabaseValue.ENABLED_PROFILE.data)
-              LunaProfile().safelyChangeProfiles(results.item2!);
+            if (selected.item1) {
+              LunaProfileTools().changeTo(selected.item2);
+            }
           },
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -59,56 +72,23 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       controller: scrollController,
       children: [
         LunaBlock(
-          title: 'settings.Appearance'.tr(),
-          body: [TextSpan(text: 'settings.AppearanceDescription'.tr())],
+          title: 'settings.General'.tr(),
+          body: [TextSpan(text: 'settings.GeneralDescription'.tr())],
           trailing: const LunaIconButton(icon: Icons.brush_rounded),
-          onTap: () async =>
-              SettingsConfigurationAppearanceRouter().navigateTo(context),
+          onTap: SettingsRoutes.CONFIGURATION_GENERAL.go,
         ),
         LunaBlock(
           title: 'settings.Drawer'.tr(),
           body: [TextSpan(text: 'settings.DrawerDescription'.tr())],
           trailing: const LunaIconButton(icon: Icons.menu_rounded),
-          onTap: () async =>
-              SettingsConfigurationDrawerRouter().navigateTo(context),
+          onTap: SettingsRoutes.CONFIGURATION_DRAWER.go,
         ),
-        LunaBlock(
-          title: 'settings.Localization'.tr(),
-          body: [TextSpan(text: 'settings.LocalizationDescription'.tr())],
-          trailing: const LunaIconButton(icon: Icons.translate_rounded),
-          onTap: () async =>
-              SettingsConfigurationLocalizationRouter().navigateTo(context),
-        ),
-        LunaBlock(
-          title: 'settings.Network'.tr(),
-          body: [TextSpan(text: 'settings.NetworkDescription'.tr())],
-          trailing: const LunaIconButton(icon: Icons.network_check_rounded),
-          onTap: () async =>
-              SettingsConfigurationNetworkRouter().navigateTo(context),
-        ),
-        if (Platform.isIOS)
-          LunaDatabaseValue.SELECTED_BROWSER.listen(
-            builder: (context, box, widget) {
-              LunaDatabaseValue _db = LunaDatabaseValue.SELECTED_BROWSER;
-              return LunaBlock(
-                title: 'settings.OpenLinksIn'.tr(),
-                body: [TextSpan(text: (_db.data as LunaBrowser?).name)],
-                trailing: LunaIconButton(icon: (_db.data as LunaBrowser?).icon),
-                onTap: () async {
-                  Tuple2<bool, LunaBrowser?> result =
-                      await SettingsDialogs().changeBrowser(context);
-                  if (result.item1) _db.put(result.item2);
-                },
-              );
-            },
-          ),
-        if (LunaQuickActions.isPlatformCompatible)
+        if (LunaQuickActions.isSupported)
           LunaBlock(
             title: 'settings.QuickActions'.tr(),
             body: [TextSpan(text: 'settings.QuickActionsDescription'.tr())],
             trailing: const LunaIconButton(icon: Icons.rounded_corner_rounded),
-            onTap: () async =>
-                SettingsConfigurationQuickActionsRouter().navigateTo(context),
+            onTap: SettingsRoutes.CONFIGURATION_QUICK_ACTIONS.go,
           ),
         LunaDivider(),
         ..._moduleList(),
@@ -117,19 +97,19 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   List<Widget> _moduleList() {
-    return ([LunaModule.DASHBOARD, ...LunaModule.DASHBOARD.allModules()])
+    return ([LunaModule.DASHBOARD, ...LunaModule.active])
         .map(_tileFromModuleMap)
         .toList();
   }
 
   Widget _tileFromModuleMap(LunaModule module) {
     return LunaBlock(
-      title: module.name,
+      title: module.title,
       body: [
-        TextSpan(text: 'settings.ConfigureModule'.tr(args: [module.name]))
+        TextSpan(text: 'settings.ConfigureModule'.tr(args: [module.title]))
       ],
       trailing: LunaIconButton(icon: module.icon),
-      onTap: () async => module.settingsPage!.navigateTo(context),
+      onTap: module.settingsRoute!.go,
     );
   }
 }

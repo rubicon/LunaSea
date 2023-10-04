@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliStatisticsRecentlyWatchedTile extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -41,15 +43,16 @@ class _State extends State<TautulliStatisticsRecentlyWatchedTile> {
       widget.data['last_watch'] != null
           ? TextSpan(
               text:
-                  'Watched ${DateTime.fromMillisecondsSinceEpoch(widget.data['last_watch'] * 1000).lunaAge}',
+                  'Watched ${DateTime.fromMillisecondsSinceEpoch(widget.data['last_watch'] * 1000).asAge()}',
             )
           : const TextSpan(text: LunaUI.TEXT_EMDASH)
     ];
   }
 
-  Future<void> _onTap() async => TautulliMediaDetailsRouter().navigateTo(
-        context,
-        widget.data['rating_key'],
-        TautulliMediaType.NULL.from(widget.data['media_type'])!,
-      );
+  Future<void> _onTap() async {
+    TautulliRoutes.MEDIA_DETAILS.go(params: {
+      'rating_key': widget.data['rating_key'].toString(),
+      'media_type': TautulliMediaType.from(widget.data['media_type']).value,
+    });
+  }
 }

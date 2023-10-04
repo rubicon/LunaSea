@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliUserDetailsIPAddresses extends StatefulWidget {
   final TautulliTableUser user;
@@ -41,7 +44,6 @@ class _State extends State<TautulliUserDetailsIPAddresses>
     super.build(context);
     return LunaScaffold(
       module: LunaModule.TAUTULLI,
-      hideDrawer: true,
       scaffoldKey: _scaffoldKey,
       body: _body(),
     );
@@ -92,8 +94,8 @@ class _State extends State<TautulliUserDetailsIPAddresses>
       body: [
         TextSpan(
           children: [
-            TextSpan(text: record.lastSeen?.lunaAge ?? 'lunasea.Unknown'.tr()),
-            TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+            TextSpan(text: record.lastSeen?.asAge() ?? 'lunasea.Unknown'.tr()),
+            TextSpan(text: LunaUI.TEXT_BULLET.pad()),
             TextSpan(text: _count == 1 ? '1 Play' : '$_count Plays'),
           ],
         ),
@@ -104,10 +106,9 @@ class _State extends State<TautulliUserDetailsIPAddresses>
             width: MediaQuery.of(context).size.width.truncate(),
           ),
       backgroundHeaders: context.read<TautulliState>().headers,
-      onTap: () async => TautulliIPAddressDetailsRouter().navigateTo(
-        context,
-        record.ipAddress!,
-      ),
+      onTap: () => TautulliRoutes.IP_DETAILS.go(params: {
+        'ip_address': record.ipAddress!,
+      }),
     );
   }
 }

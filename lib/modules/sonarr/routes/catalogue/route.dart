@@ -1,9 +1,9 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
+import 'package:lunasea/types/list_view_option.dart';
 
 class SonarrCatalogueRoute extends StatefulWidget {
   const SonarrCatalogueRoute({
@@ -44,13 +44,12 @@ class _State extends State<SonarrCatalogueRoute>
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       module: LunaModule.SONARR,
-      hideDrawer: true,
       body: _body(),
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar.empty(
       child: SonarrSeriesSearchBar(
         scrollController: SonarrNavigationBar.scrollControllers[0],
@@ -154,10 +153,11 @@ class _State extends State<SonarrCatalogueRoute>
                             ])
                           : 'sonarr.SearchFor'.tr(args: ['"$query"']),
                       backgroundColor: LunaColours.accent,
-                      onTap: () async => SonarrAddSeriesRouter().navigateTo(
-                        context,
-                        query,
-                      ),
+                      onTap: () async {
+                        SonarrRoutes.ADD_SERIES.go(queryParams: {
+                          'query': query,
+                        });
+                      },
                     ),
                   ],
                 ),

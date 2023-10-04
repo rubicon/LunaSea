@@ -1,20 +1,26 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/tables/nzbget.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/nzbget.dart';
+import 'package:lunasea/router/routes/nzbget.dart';
 
-class NZBGet extends StatefulWidget {
-  static const ROUTE_NAME = '/nzbget';
+import 'package:lunasea/system/filesystem/file.dart';
+import 'package:lunasea/system/filesystem/filesystem.dart';
 
-  const NZBGet({
+class NZBGetRoute extends StatefulWidget {
+  final bool showDrawer;
+
+  const NZBGetRoute({
     Key? key,
+    this.showDrawer = true,
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<NZBGet> {
+class _State extends State<NZBGetRoute> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
   String _profileState = LunaProfile.current.toString();
@@ -28,8 +34,8 @@ class _State extends State<NZBGet> {
   @override
   void initState() {
     super.initState();
-    _pageController = LunaPageController(
-        initialPage: NZBGetDatabaseValue.NAVIGATION_INDEX.data);
+    _pageController =
+        LunaPageController(initialPage: NZBGetDatabase.NAVIGATION_INDEX.read());
   }
 
   @override
@@ -37,7 +43,7 @@ class _State extends State<NZBGet> {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       body: _body(),
-      drawer: _drawer(),
+      drawer: widget.showDrawer ? _drawer() : null,
       appBar: _appBar() as PreferredSizeWidget?,
       bottomNavigationBar: _bottomNavigationBar(),
       extendBodyBehindAppBar: false,
@@ -51,20 +57,20 @@ class _State extends State<NZBGet> {
   Widget _drawer() => LunaDrawer(page: LunaModule.NZBGET.key);
 
   Widget? _bottomNavigationBar() {
-    if (_api.enabled!)
+    if (LunaProfile.current.nzbgetEnabled) {
       return NZBGetNavigationBar(pageController: _pageController);
+    }
     return null;
   }
 
   Widget _appBar() {
-    List<String> profiles =
-        Database.profiles.box.keys.fold([], (value, element) {
-      if (Database.profiles.box.get(element)?.nzbgetEnabled ?? false)
+    List<String> profiles = LunaBox.profiles.keys.fold([], (value, element) {
+      if (LunaBox.profiles.read(element)?.nzbgetEnabled ?? false)
         value.add(element);
       return value;
     });
     List<Widget>? actions;
-    if (_api.enabled!)
+    if (LunaProfile.current.nzbgetEnabled)
       actions = [
         Selector<NZBGetState, bool>(
           selector: (_, model) => model.error,
@@ -77,8 +83,9 @@ class _State extends State<NZBGet> {
         ),
       ];
     return LunaAppBar.dropdown(
-      title: LunaModule.NZBGET.name,
-      useDrawer: true,
+      title: LunaModule.NZBGET.title,
+      useDrawer: widget.showDrawer,
+      hideLeading: !widget.showDrawer,
       profiles: profiles,
       actions: actions,
       pageController: _pageController,
@@ -87,10 +94,10 @@ class _State extends State<NZBGet> {
   }
 
   Widget _body() {
-    if (!_api.enabled!)
+    if (!LunaProfile.current.nzbgetEnabled)
       return LunaMessage.moduleNotEnabled(
         context: context,
-        module: LunaModule.NZBGET.name,
+        module: LunaModule.NZBGET.title,
       );
     return LunaPageView(
       controller: _pageController,
@@ -110,9 +117,8 @@ class _State extends State<NZBGet> {
     if (values[0])
       switch (values[1]) {
         case 'web_gui':
-          ProfileHiveObject profile = LunaProfile.current;
-          await profile.nzbgetHost
-              ?.lunaOpenGenericLink(headers: profile.nzbgetHeaders);
+          LunaProfile profile = LunaProfile.current;
+          await profile.nzbgetHost.openLink();
           break;
         case 'add_nzb':
           _addNZB();
@@ -124,8 +130,7 @@ class _State extends State<NZBGet> {
           _serverDetails();
           break;
         default:
-          LunaLogger()
-              .warning('NZBGet', '_handlePopup', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 
@@ -140,8 +145,7 @@ class _State extends State<NZBGet> {
           _addByFile();
           break;
         default:
-          LunaLogger()
-              .warning('NZBGet', '_addNZB', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 
@@ -158,23 +162,24 @@ class _State extends State<NZBGet> {
 
   Future<void> _addByFile() async {
     try {
-      File? _file = await LunaFileSystem().import(context, ['nzb']);
+      LunaFile? _file = await LunaFileSystem().read(context, [
+        'nzb',
+      ]);
       if (_file != null) {
-        List<int> _data = _file.readAsBytesSync();
-        String _name = _file.path.substring(_file.path.lastIndexOf('/') + 1);
-        if (_data.isNotEmpty)
-          await _api.uploadFile(_data, _name).then((value) {
+        if (_file.data.isNotEmpty) {
+          await _api.uploadFile(_file.data, _file.name).then((value) {
             _refreshKeys[0]?.currentState?.show();
             showLunaSuccessSnackBar(
               title: 'Uploaded NZB (File)',
-              message: _name,
+              message: _file.name,
             );
           });
-      } else {
-        showLunaErrorSnackBar(
-          title: 'Failed to Upload NZB',
-          message: 'Please select a valid file type',
-        );
+        } else {
+          showLunaErrorSnackBar(
+            title: 'Failed to Upload NZB',
+            message: 'Please select a valid file',
+          );
+        }
       }
     } catch (error, stack) {
       LunaLogger().error('Failed to add NZB by file', error, stack);
@@ -197,8 +202,7 @@ class _State extends State<NZBGet> {
       });
   }
 
-  Future<void> _serverDetails() async =>
-      Navigator.of(context).pushNamed(NZBGetStatistics.ROUTE_NAME);
+  Future<void> _serverDetails() async => NZBGetRoutes.STATISTICS.go();
 
   void _refreshProfile() {
     _api = NZBGetAPI.from(LunaProfile.current);

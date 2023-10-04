@@ -1,11 +1,13 @@
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/int/duration.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
 
 extension SonarrSeriesExtension on SonarrSeries {
   String get lunaRuntime {
-    if (this.runtime != null && this.runtime != 0)
-      return this.runtime.lunaRuntime();
-    return LunaUI.TEXT_EMDASH;
+    return this.runtime.asVideoDuration();
   }
 
   String get lunaAlternateTitles {
@@ -39,21 +41,19 @@ extension SonarrSeriesExtension on SonarrSeries {
   String lunaNextAiring([bool short = false]) {
     if (this.status == 'ended') return 'sonarr.SeriesEnded'.tr();
     if (this.nextAiring == null) return 'lunasea.Unknown'.tr();
-    return this.nextAiring!.lunaDateTimeReadable(
-          timeOnNewLine: false,
+    return this.nextAiring!.asDateTime(
           showSeconds: false,
-          sameLineDelimiter: '@',
-          shortMonth: short,
+          delimiter: '@'.pad(),
+          shortenMonth: short,
         );
   }
 
   String lunaPreviousAiring([bool short = false]) {
     if (this.previousAiring == null) return LunaUI.TEXT_EMDASH;
-    return this.previousAiring!.lunaDateTimeReadable(
-          timeOnNewLine: false,
+    return this.previousAiring!.asDateTime(
           showSeconds: false,
-          sameLineDelimiter: '@',
-          shortMonth: short,
+          delimiter: '@'.pad(),
+          shortenMonth: short,
         );
   }
 
@@ -78,7 +78,7 @@ extension SonarrSeriesExtension on SonarrSeries {
 
   String? get lunaAirTime {
     if (this.previousAiring != null) {
-      return LunaDatabaseValue.USE_24_HOUR_TIME.data
+      return LunaSeaDatabase.USE_24_HOUR_TIME.read()
           ? DateFormat.Hm().format(this.previousAiring!.toLocal())
           : DateFormat('hh:mm a').format(this.previousAiring!.toLocal());
     }
@@ -108,7 +108,7 @@ extension SonarrSeriesExtension on SonarrSeries {
     if (this.statistics?.sizeOnDisk == null) {
       return '0.0 B';
     }
-    return this.statistics!.sizeOnDisk.lunaBytesToString(decimals: 1);
+    return this.statistics!.sizeOnDisk.asBytes(decimals: 1);
   }
 
   String? get lunaOverview {
@@ -142,10 +142,13 @@ extension SonarrSeriesExtension on SonarrSeries {
     series.seasonFolder = edits.useSeasonFolders;
     series.path = edits.seriesPath;
     series.qualityProfileId = edits.qualityProfile?.id ?? this.qualityProfileId;
-    series.languageProfileId =
-        edits.languageProfile.id ?? this.languageProfileId;
     series.seriesType = edits.seriesType ?? this.seriesType;
     series.tags = edits.tags?.map((t) => t.id!).toList() ?? [];
+    if (edits.languageProfile != null) {
+      series.languageProfileId =
+          edits.languageProfile!.id ?? this.languageProfileId;
+    }
+
     return series;
   }
 }

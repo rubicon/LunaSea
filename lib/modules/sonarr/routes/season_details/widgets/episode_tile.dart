@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrEpisodeTile extends StatefulWidget {
   final SonarrEpisode episode;
@@ -31,6 +32,12 @@ class _State extends State<SonarrEpisodeTile> {
       trailing: _trailing(),
       onTap: _onTap,
       onLongPress: _onLongPress,
+      backgroundColor: context
+              .read<SonarrSeasonDetailsState>()
+              .selectedEpisodes
+              .contains(widget.episode.id)
+          ? LunaColours.accent.selected()
+          : null,
     );
   }
 
@@ -40,7 +47,7 @@ class _State extends State<SonarrEpisodeTile> {
       episode: widget.episode,
       episodeFile: widget.episodeFile,
       queueRecords: widget.queueRecords,
-    ).show(context: context);
+    ).show();
   }
 
   Future<void> _onLongPress() async {
@@ -82,6 +89,11 @@ class _State extends State<SonarrEpisodeTile> {
     return LunaIconButton(
       text: widget.episode.episodeNumber.toString(),
       textSize: LunaUI.FONT_SIZE_H4,
+      onPressed: () {
+        context
+            .read<SonarrSeasonDetailsState>()
+            .toggleSelectedEpisode(widget.episode);
+      },
     );
   }
 
@@ -102,10 +114,11 @@ class _State extends State<SonarrEpisodeTile> {
             )
             .whenComplete(() => setLoadingState(LunaLoadingState.INACTIVE));
       },
-      onLongPress: () async => SonarrReleasesRouter().navigateTo(
-        context,
-        episodeId: widget.episode.id,
-      ),
+      onLongPress: () async {
+        SonarrRoutes.RELEASES.go(queryParams: {
+          'episode': widget.episode.id!.toString(),
+        });
+      },
     );
   }
 }

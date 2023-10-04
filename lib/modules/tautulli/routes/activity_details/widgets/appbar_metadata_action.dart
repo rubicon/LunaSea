@@ -2,13 +2,14 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliActivityDetailsMetadataAction extends StatelessWidget {
-  final String? sessionId;
+  final int sessionKey;
 
   const TautulliActivityDetailsMetadataAction({
     Key? key,
-    required this.sessionId,
+    required this.sessionKey,
   }) : super(key: key);
 
   @override
@@ -20,7 +21,7 @@ class TautulliActivityDetailsMetadataAction extends StatelessWidget {
         if (snapshot.hasError) return Container();
         if (snapshot.hasData) {
           TautulliSession? session = snapshot.data!.sessions!
-              .firstWhereOrNull((element) => element.sessionId == sessionId);
+              .firstWhereOrNull((element) => element.sessionKey == sessionKey);
           if (session != null)
             return LunaIconButton(
               icon: Icons.info_outline_rounded,
@@ -32,10 +33,10 @@ class TautulliActivityDetailsMetadataAction extends StatelessWidget {
     );
   }
 
-  Future<void> _onPressed(BuildContext context, TautulliSession session) =>
-      TautulliMediaDetailsRouter().navigateTo(
-        context,
-        session.ratingKey!,
-        session.mediaType!,
-      );
+  void _onPressed(BuildContext context, TautulliSession session) {
+    TautulliRoutes.MEDIA_DETAILS.go(params: {
+      'rating_key': session.ratingKey.toString(),
+      'media_type': session.mediaType!.value,
+    });
+  }
 }

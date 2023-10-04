@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/search.dart';
+import 'package:lunasea/router/routes/search.dart';
 
-class SearchCategoriesRouter extends SearchPageRouter {
-  SearchCategoriesRouter() : super('/search/categories');
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+class CategoriesRoute extends StatefulWidget {
+  const CategoriesRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
+  State<CategoriesRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget>
+class _State extends State<CategoriesRoute>
     with LunaLoadCallbackMixin, LunaScrollControllerMixin {
   static const ADULT_CATEGORIES = ['xxx', 'adult', 'porn'];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -42,8 +35,7 @@ class _State extends State<_Widget>
 
   Widget _appBar() {
     return LunaAppBar(
-      title: context.read<SearchState>().indexer.displayName ??
-          'search.Categories'.tr(),
+      title: context.read<SearchState>().indexer.displayName,
       scrollControllers: [scrollController],
       actions: <Widget>[
         LunaIconButton(
@@ -98,7 +90,7 @@ class _State extends State<_Widget>
 
   List<NewznabCategoryData> _filter(List<NewznabCategoryData> categories) {
     return categories.where((category) {
-      if (!SearchDatabaseValue.HIDE_XXX.data) return true;
+      if (!SearchDatabase.HIDE_XXX.read()) return true;
       if (category.id >= 6000 && category.id <= 6999) return false;
       if (ADULT_CATEGORIES.contains(category.name!.toLowerCase().trim())) {
         return false;
@@ -110,6 +102,6 @@ class _State extends State<_Widget>
   Future<void> _enterSearch() async {
     context.read<SearchState>().activeCategory = null;
     context.read<SearchState>().activeSubcategory = null;
-    SearchSearchRouter().navigateTo(context);
+    SearchRoutes.SEARCH.go();
   }
 }

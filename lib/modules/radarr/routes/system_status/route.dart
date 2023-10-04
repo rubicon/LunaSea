@@ -2,24 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
 
-class RadarrSystemStatusRouter extends RadarrPageRouter {
-  RadarrSystemStatusRouter() : super('/radarr/system/status');
+class SystemStatusRoute extends StatefulWidget {
+  const SystemStatusRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<SystemStatusRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> {
+class _State extends State<SystemStatusRoute> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
 
@@ -27,7 +19,7 @@ class _State extends State<_Widget> {
   void initState() {
     super.initState();
     _pageController = LunaPageController(
-      initialPage: RadarrDatabaseValue.NAVIGATION_INDEX_SYSTEM_STATUS.data,
+      initialPage: RadarrDatabase.NAVIGATION_INDEX_SYSTEM_STATUS.read(),
     );
   }
 

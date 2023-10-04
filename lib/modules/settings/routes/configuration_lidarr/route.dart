@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/lidarr.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationLidarrRouter extends SettingsPageRouter {
-  SettingsConfigurationLidarrRouter() : super('/settings/configuration/lidarr');
+class ConfigurationLidarrRoute extends StatefulWidget {
+  const ConfigurationLidarrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationLidarrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationLidarrRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -35,7 +28,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   Widget _appBar() {
     return LunaAppBar(
       scrollControllers: [scrollController],
-      title: LunaModule.LIDARR.name,
+      title: LunaModule.LIDARR.title,
     );
   }
 
@@ -54,12 +47,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _enabledToggle() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic _, __) => LunaBlock(
-        title: 'Enable ${LunaModule.LIDARR.name}',
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'settings.EnableModule'.tr(args: [LunaModule.LIDARR.title]),
         trailing: LunaSwitch(
-          value: LunaProfile.current.lidarrEnabled ?? false,
+          value: LunaProfile.current.lidarrEnabled,
           onChanged: (value) {
             LunaProfile.current.lidarrEnabled = value;
             LunaProfile.current.save();
@@ -76,15 +68,12 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       body: [
         TextSpan(
           text: 'settings.ConnectionDetailsDescription'.tr(
-            args: [LunaModule.LIDARR.name],
+            args: [LunaModule.LIDARR.title],
           ),
         ),
       ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async {
-        SettingsConfigurationLidarrConnectionDetailsRouter()
-            .navigateTo(context);
-      },
+      onTap: SettingsRoutes.CONFIGURATION_LIDARR_CONNECTION_DETAILS.go,
     );
   }
 
@@ -93,8 +82,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.DefaultPages'.tr(),
       body: [TextSpan(text: 'settings.DefaultPagesDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationLidarrDefaultPagesRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_LIDARR_DEFAULT_PAGES.go,
     );
   }
 }

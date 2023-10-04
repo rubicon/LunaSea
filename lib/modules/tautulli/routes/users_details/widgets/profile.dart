@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/duration/timestamp.dart';
 import 'package:lunasea/modules/tautulli.dart';
 
 class TautulliUserDetailsProfile extends StatefulWidget {
@@ -67,7 +69,6 @@ class _State extends State<TautulliUserDetailsProfile>
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       module: LunaModule.TAUTULLI,
-      hideDrawer: true,
       body: _initialLoad ? _body() : const LunaLoader(),
     );
   }
@@ -130,7 +131,7 @@ class _State extends State<TautulliUserDetailsProfile>
         LunaTableContent(
           title: 'last seen',
           body: widget.user.lastSeen != null
-              ? widget.user.lastSeen?.lunaAge ?? 'Unknown'
+              ? widget.user.lastSeen?.asAge() ?? 'Unknown'
               : 'Never',
         ),
         LunaTableContent(title: '', body: ''),
@@ -166,7 +167,7 @@ class _State extends State<TautulliUserDetailsProfile>
 
   String _globalStatsContent(int? plays, Duration duration) {
     String _plays = plays == 1 ? '1 Play' : '$plays Plays';
-    return '$_plays\n${duration.lunaTimestampWords}';
+    return '$_plays\n${duration.asWordsTimestamp()}';
   }
 
   List<Widget> _playerStats(List<TautulliUserPlayerStats> player) =>

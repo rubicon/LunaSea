@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
 
 class SonarrDialogs {
@@ -120,6 +122,40 @@ class SonarrDialogs {
           icon: SonarrSeasonSettingsType.values[index].icon,
           iconColor: LunaColours().byListIndex(index),
           onTap: () => _setValues(true, SonarrSeasonSettingsType.values[index]),
+        ),
+      ),
+      contentPadding: LunaDialog.listDialogContentPadding(),
+    );
+    return Tuple2(_flag, _value);
+  }
+
+  Future<Tuple2<bool, SonarrEpisodeMultiSettingsType?>> episodeMultiSettings(
+    BuildContext context,
+    int episodes,
+  ) async {
+    bool _flag = false;
+    SonarrEpisodeMultiSettingsType? _value;
+
+    void _setValues(bool flag, SonarrEpisodeMultiSettingsType value) {
+      _flag = flag;
+      _value = value;
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+
+    await LunaDialog.dialog(
+      context: context,
+      title: episodes > 1
+          ? 'sonarr.EpisodesCount'.tr(args: [episodes.toString()])
+          : 'sonarr.OneEpisode'.tr(),
+      content: List.generate(
+        SonarrEpisodeMultiSettingsType.values.length,
+        (idx) => LunaDialog.tile(
+          text: SonarrEpisodeMultiSettingsType.values[idx].name,
+          icon: SonarrEpisodeMultiSettingsType.values[idx].icon,
+          iconColor: LunaColours().byListIndex(idx),
+          onTap: () {
+            _setValues(true, SonarrEpisodeMultiSettingsType.values[idx]);
+          },
         ),
       ),
       contentPadding: LunaDialog.listDialogContentPadding(),
@@ -465,7 +501,7 @@ class SonarrDialogs {
           subtitle: LunaDialog.richText(
             children: [
               LunaDialog.bolded(
-                text: folders[index].freeSpace.lunaBytesToString(),
+                text: folders[index].freeSpace.asBytes(),
                 fontSize: LunaDialog.BUTTON_SIZE,
               ),
             ],
@@ -555,20 +591,20 @@ class SonarrDialogs {
         ),
       ],
       content: [
-        SonarrDatabaseValue.REMOVE_SERIES_EXCLUSION_LIST.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.REMOVE_SERIES_EXCLUSION_LIST.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.AddToExclusionList'.tr(),
-            value: SonarrDatabaseValue.REMOVE_SERIES_EXCLUSION_LIST.data,
+            value: SonarrDatabase.REMOVE_SERIES_EXCLUSION_LIST.read(),
             onChanged: (value) =>
-                SonarrDatabaseValue.REMOVE_SERIES_EXCLUSION_LIST.put(value),
+                SonarrDatabase.REMOVE_SERIES_EXCLUSION_LIST.update(value!),
           ),
         ),
-        SonarrDatabaseValue.REMOVE_SERIES_DELETE_FILES.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.REMOVE_SERIES_DELETE_FILES.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.DeleteFiles'.tr(),
-            value: SonarrDatabaseValue.REMOVE_SERIES_DELETE_FILES.data,
+            value: SonarrDatabase.REMOVE_SERIES_DELETE_FILES.read(),
             onChanged: (value) =>
-                SonarrDatabaseValue.REMOVE_SERIES_DELETE_FILES.put(value),
+                SonarrDatabase.REMOVE_SERIES_DELETE_FILES.update(value!),
           ),
         ),
       ],
@@ -589,21 +625,21 @@ class SonarrDialogs {
       ],
       showCancelButton: false,
       content: [
-        SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_MISSING.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.ADD_SERIES_SEARCH_FOR_MISSING.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.StartSearchForMissingEpisodes'.tr(),
-            value: SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_MISSING.data,
+            value: SonarrDatabase.ADD_SERIES_SEARCH_FOR_MISSING.read(),
             onChanged: (value) =>
-                SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_MISSING.put(value),
+                SonarrDatabase.ADD_SERIES_SEARCH_FOR_MISSING.update(value!),
           ),
         ),
-        SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.StartSearchForCutoffUnmetEpisodes'.tr(),
-            value: SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.data,
-            onChanged: (value) => SonarrDatabaseValue
+            value: SonarrDatabase.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.read(),
+            onChanged: (value) => SonarrDatabase
                 .ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET
-                .put(value),
+                .update(value!),
           ),
         ),
       ],
@@ -688,20 +724,20 @@ class SonarrDialogs {
         ),
       ],
       content: [
-        SonarrDatabaseValue.QUEUE_REMOVE_DOWNLOAD_CLIENT.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.QUEUE_REMOVE_DOWNLOAD_CLIENT.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.RemoveFromDownloadClient'.tr(),
-            value: SonarrDatabaseValue.QUEUE_REMOVE_DOWNLOAD_CLIENT.data,
+            value: SonarrDatabase.QUEUE_REMOVE_DOWNLOAD_CLIENT.read(),
             onChanged: (value) =>
-                SonarrDatabaseValue.QUEUE_REMOVE_DOWNLOAD_CLIENT.put(value),
+                SonarrDatabase.QUEUE_REMOVE_DOWNLOAD_CLIENT.update(value!),
           ),
         ),
-        SonarrDatabaseValue.QUEUE_ADD_BLOCKLIST.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        SonarrDatabase.QUEUE_ADD_BLOCKLIST.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'sonarr.AddReleaseToBlocklist'.tr(),
-            value: SonarrDatabaseValue.QUEUE_ADD_BLOCKLIST.data,
+            value: SonarrDatabase.QUEUE_ADD_BLOCKLIST.read(),
             onChanged: (value) =>
-                SonarrDatabaseValue.QUEUE_ADD_BLOCKLIST.put(value),
+                SonarrDatabase.QUEUE_ADD_BLOCKLIST.update(value!),
           ),
         ),
       ],
@@ -738,7 +774,7 @@ class SonarrDialogs {
                   const Padding(
                     padding: EdgeInsets.only(right: 32.0),
                     child: Icon(
-                      Icons.warning_amber_rounded,
+                      LunaIcons.WARNING,
                       color: LunaColours.orange,
                       size: 24.0,
                     ),
@@ -798,7 +834,7 @@ class SonarrDialogs {
     bool _flag = false;
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController _textController = TextEditingController(
-      text: SonarrDatabaseValue.QUEUE_PAGE_SIZE.data.toString(),
+      text: SonarrDatabase.QUEUE_PAGE_SIZE.read().toString(),
     );
 
     void _setValues(bool flag) {

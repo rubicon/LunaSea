@@ -1,7 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/config.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/system/filesystem/file.dart';
+import 'package:lunasea/system/filesystem/filesystem.dart';
+import 'package:lunasea/utils/encryption.dart';
 
 class SettingsSystemBackupRestoreRestoreTile extends StatelessWidget {
   const SettingsSystemBackupRestoreRestoreTile({
@@ -11,8 +14,8 @@ class SettingsSystemBackupRestoreRestoreTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LunaBlock(
-      title: 'Restore from Device',
-      body: const [TextSpan(text: 'Restore Configuration Data')],
+      title: 'settings.RestoreFromDevice'.tr(),
+      body: [TextSpan(text: 'settings.RestoreFromDeviceDescription'.tr())],
       trailing: const LunaIconButton(icon: Icons.download_rounded),
       onTap: () async => _restore(context),
     );
@@ -20,39 +23,40 @@ class SettingsSystemBackupRestoreRestoreTile extends StatelessWidget {
 
   Future<void> _restore(BuildContext context) async {
     try {
-      File? file = await LunaFileSystem().import(context, ['lunasea']);
-      if (file != null) {
-        String _data = file.readAsStringSync();
-        Tuple2<bool, String> _key =
-            await SettingsDialogs().decryptBackup(context);
-        if (_key.item1) {
-          String _decrypted = LunaEncryption().decrypt(_key.item2, _data);
-          if (_decrypted != LunaEncryption.ENCRYPTION_FAILURE) {
-            LunaConfiguration().import(context, _decrypted).then(
-                  (_) => showLunaSuccessSnackBar(
-                    title: 'Restored',
-                    message: 'Your configuration has been restored',
-                  ),
-                );
-          } else {
-            showLunaErrorSnackBar(
-              title: 'Failed to Restore',
-              message: 'An incorrect encryption key was supplied',
-            );
-          }
-        }
-      } else {
-        showLunaErrorSnackBar(
-          title: 'Failed to Restore',
-          message: 'Please select a valid file type',
-        );
-      }
+      LunaFile? file = await LunaFileSystem().read(context, ['lunasea']);
+      if (file != null) await _decryptBackup(context, file);
     } catch (error, stack) {
-      LunaLogger().error('Restore Failed', error, stack);
+      LunaLogger().error('Failed to restore device backup', error, stack);
       showLunaErrorSnackBar(
-        title: 'Failed to Restore',
+        title: 'settings.RestoreFromCloudFailure'.tr(),
         error: error,
       );
+    }
+  }
+
+  Future<void> _decryptBackup(
+    BuildContext context,
+    LunaFile file,
+  ) async {
+    Tuple2<bool, String> _key = await SettingsDialogs().decryptBackup(context);
+    if (_key.item1) {
+      String encrypted = String.fromCharCodes(file.data);
+      try {
+        String decrypted = LunaEncryption().decrypt(_key.item2, encrypted);
+        await LunaConfig().import(context, decrypted);
+        showLunaSuccessSnackBar(
+          title: 'settings.RestoreFromCloudSuccess'.tr(),
+          message: 'settings.RestoreFromCloudSuccessMessage'.tr(),
+        );
+      } catch (_) {
+        showLunaErrorSnackBar(
+          title: 'settings.RestoreFromCloudFailure'.tr(),
+          message: 'lunasea.IncorrectEncryptionKey'.tr(),
+          showButton: true,
+          buttonText: 'lunasea.Retry'.tr(),
+          buttonOnPressed: () async => _decryptBackup(context, file),
+        );
+      }
     }
   }
 }

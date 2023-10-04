@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/models/log.dart';
+import 'package:lunasea/extensions/datetime.dart';
 
 class SettingsSystemLogTile extends StatelessWidget {
-  final LunaLogHiveObject log;
+  final LunaLog log;
 
   const SettingsSystemLogTile({
     Key? key,
@@ -11,14 +13,14 @@ class SettingsSystemLogTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String dateTime = DateTime.fromMillisecondsSinceEpoch(log.timestamp)
-        .lunaDateTimeReadable();
+    String dateTime =
+        DateTime.fromMillisecondsSinceEpoch(log.timestamp).asDateTime();
     return LunaExpandableListTile(
       title: log.message,
       collapsedSubtitles: [
         TextSpan(text: dateTime),
         TextSpan(
-          text: log.type.name.toUpperCase(),
+          text: log.type.title.toUpperCase(),
           style: TextStyle(
             color: log.type.color,
             fontWeight: LunaUI.FONT_WEIGHT_BOLD,
@@ -27,7 +29,7 @@ class SettingsSystemLogTile extends StatelessWidget {
       ],
       expandedHighlightedNodes: [
         LunaHighlightedNode(
-          text: log.type.name.toUpperCase(),
+          text: log.type.title.toUpperCase(),
           backgroundColor: log.type.color,
         ),
         LunaHighlightedNode(
@@ -37,11 +39,11 @@ class SettingsSystemLogTile extends StatelessWidget {
       ],
       expandedTableContent: [
         if (log.className != null && log.className!.isNotEmpty)
-          LunaTableContent(title: 'Class', body: log.className),
+          LunaTableContent(title: 'settings.Class'.tr(), body: log.className),
         if (log.methodName != null && log.methodName!.isNotEmpty)
-          LunaTableContent(title: 'Method', body: log.methodName),
+          LunaTableContent(title: 'settings.Method'.tr(), body: log.methodName),
         if (log.error != null && log.error!.isNotEmpty)
-          LunaTableContent(title: 'Exception', body: log.error),
+          LunaTableContent(title: 'settings.Exception'.tr(), body: log.error),
       ],
     );
   }

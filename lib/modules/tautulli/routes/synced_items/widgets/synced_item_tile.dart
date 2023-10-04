@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliSyncedItemTile extends StatelessWidget {
   final TautulliSyncedItem syncedItem;
@@ -42,10 +45,10 @@ class TautulliSyncedItemTile extends StatelessWidget {
     return TextSpan(
       children: [
         TextSpan(text: _type.toTitleCase()),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: _count == 1 ? '1 Item' : '$_count Items'),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
-        TextSpan(text: _size.lunaBytesToString(decimals: 1)),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
+        TextSpan(text: _size.asBytes(decimals: 1)),
       ],
     );
   }
@@ -54,9 +57,9 @@ class TautulliSyncedItemTile extends StatelessWidget {
     return TextSpan(
       children: [
         TextSpan(text: syncedItem.user ?? 'Unknown User'),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: syncedItem.deviceName ?? 'Unknown Device'),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: syncedItem.platform ?? 'Unknown Platform'),
       ],
     );
@@ -74,10 +77,9 @@ class TautulliSyncedItemTile extends StatelessWidget {
   }
 
   Future<void> _onTap(BuildContext context) async {
-    TautulliMediaDetailsRouter().navigateTo(
-      context,
-      syncedItem.ratingKey!,
-      TautulliMediaType.NULL.from(syncedItem.metadataType)!,
-    );
+    TautulliRoutes.MEDIA_DETAILS.go(params: {
+      'rating_key': syncedItem.ratingKey.toString(),
+      'media_type': TautulliMediaType.from(syncedItem.metadataType).value,
+    });
   }
 }

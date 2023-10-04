@@ -2,13 +2,14 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliActivityDetailsUserAction extends StatelessWidget {
-  final String? sessionId;
+  final int sessionKey;
 
   const TautulliActivityDetailsUserAction({
     Key? key,
-    required this.sessionId,
+    required this.sessionKey,
   }) : super(key: key);
 
   @override
@@ -20,7 +21,7 @@ class TautulliActivityDetailsUserAction extends StatelessWidget {
         if (snapshot.hasError) return Container();
         if (snapshot.hasData) {
           TautulliSession? session = snapshot.data!.sessions!
-              .firstWhereOrNull((element) => element.sessionId == sessionId);
+              .firstWhereOrNull((element) => element.sessionKey == sessionKey);
           if (session != null)
             return LunaIconButton(
               icon: Icons.person_rounded,
@@ -32,6 +33,9 @@ class TautulliActivityDetailsUserAction extends StatelessWidget {
     );
   }
 
-  Future<void> _onPressed(BuildContext context, int userId) =>
-      TautulliUserDetailsRouter().navigateTo(context, userId);
+  void _onPressed(BuildContext context, int userId) {
+    TautulliRoutes.USER_DETAILS.go(params: {
+      'user': userId.toString(),
+    });
+  }
 }

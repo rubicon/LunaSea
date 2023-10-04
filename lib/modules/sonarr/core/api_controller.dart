@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
 
 class SonarrAPIController {
@@ -21,7 +22,7 @@ class SonarrAPIController {
         if (showSnackbar) {
           showLunaSuccessSnackBar(
             title: 'sonarr.DownloadingRelease'.tr(),
-            message: lunaSafeString(release.title),
+            message: release.title.uiSafe(),
           );
         }
         return true;
@@ -126,6 +127,54 @@ class SonarrAPIController {
     return false;
   }
 
+  Future<bool> deleteEpisodes({
+    required BuildContext context,
+    required List<int> episodeFileIds,
+    bool showSnackbar = true,
+  }) async {
+    if (episodeFileIds.isEmpty) {
+      showLunaInfoSnackBar(
+        title: 'sonarr.NoEpisodeFilesFound'.tr(),
+        message: 'sonarr.NoEpisodeFilesFoundDeleteMessage'.tr(),
+      );
+      return true;
+    }
+
+    if (context.read<SonarrState>().enabled) {
+      return context
+          .read<SonarrState>()
+          .api!
+          .episodeFile
+          .deleteBulk(episodeFileIds: episodeFileIds)
+          .then((response) {
+        if (showSnackbar) {
+          showLunaSuccessSnackBar(
+            title: 'sonarr.EpisodeFilesDeleted'.tr(),
+            message: episodeFileIds.length > 1
+                ? 'sonarr.EpisodesCount'
+                    .tr(args: [episodeFileIds.length.toString()])
+                : 'sonarr.OneEpisode'.tr(),
+          );
+        }
+        return true;
+      }).catchError((error, stack) {
+        LunaLogger().error(
+          'Failed to delete episodes (${episodeFileIds.join(',')})',
+          error,
+          stack,
+        );
+        if (showSnackbar) {
+          showLunaErrorSnackBar(
+            title: 'sonarr.FailedToDeleteEpisodeFiles'.tr(),
+            error: error,
+          );
+        }
+        return false;
+      });
+    }
+    return false;
+  }
+
   Future<bool> episodeSearch({
     required BuildContext context,
     required SonarrEpisode episode,
@@ -153,6 +202,46 @@ class SonarrAPIController {
         if (showSnackbar) {
           showLunaErrorSnackBar(
             title: 'sonarr.FailedToSearch'.tr(),
+            error: error,
+          );
+        }
+        return false;
+      });
+    }
+    return false;
+  }
+
+  Future<bool> multiEpisodeSearch({
+    required BuildContext context,
+    required List<int> episodeIds,
+    bool showSnackbar = true,
+  }) async {
+    if (context.read<SonarrState>().enabled) {
+      return context
+          .read<SonarrState>()
+          .api!
+          .command
+          .episodeSearch(episodeIds: episodeIds)
+          .then((response) {
+        if (showSnackbar) {
+          showLunaSuccessSnackBar(
+            title: 'sonarr.SearchingForEpisodes'.tr(),
+            message: episodeIds.length > 1
+                ? 'sonarr.EpisodesCount'
+                    .tr(args: [episodeIds.length.toString()])
+                : 'sonarr.OneEpisode'.tr(),
+          );
+        }
+        return true;
+      }).catchError((error, stack) {
+        LunaLogger().error(
+          'Failed to search for episode: ${episodeIds.join(',')}',
+          error,
+          stack,
+        );
+        if (showSnackbar) {
+          showLunaErrorSnackBar(
+            title: 'sonarr.FailedToSearchForEpisodes'.tr(),
             error: error,
           );
         }
@@ -400,6 +489,41 @@ class SonarrAPIController {
     return false;
   }
 
+  Future<bool> seriesSearch({
+    required BuildContext context,
+    required SonarrSeries series,
+    bool showSnackbar = true,
+  }) async {
+    if (context.read<SonarrState>().enabled) {
+      return await context
+          .read<SonarrState>()
+          .api!
+          .command
+          .seriesSearch(seriesId: series.id!)
+          .then((_) {
+        if (showSnackbar)
+          showLunaSuccessSnackBar(
+            title: 'sonarr.SearchingForMonitoredEpisodes'.tr(),
+            message: series.title!,
+          );
+        return true;
+      }).catchError((error, stack) {
+        LunaLogger().error(
+          'Failed to search for monitored episodes (${series.id})',
+          error,
+          stack,
+        );
+        if (showSnackbar)
+          showLunaErrorSnackBar(
+            title: 'sonarr.FailedToSearchForMonitoredEpisodes'.tr(),
+            error: error,
+          );
+        return false;
+      });
+    }
+    return false;
+  }
+
   Future<bool> runRSSSync({
     required BuildContext context,
     bool showSnackbar = true,
@@ -544,9 +668,9 @@ class SonarrAPIController {
           .series
           .delete(
             seriesId: series.id!,
-            deleteFiles: SonarrDatabaseValue.REMOVE_SERIES_DELETE_FILES.data,
+            deleteFiles: SonarrDatabase.REMOVE_SERIES_DELETE_FILES.read(),
             addImportListExclusion:
-                SonarrDatabaseValue.REMOVE_SERIES_EXCLUSION_LIST.data,
+                SonarrDatabase.REMOVE_SERIES_EXCLUSION_LIST.read(),
           )
           .then((_) async {
         return await context
@@ -555,7 +679,7 @@ class SonarrAPIController {
             .then((_) {
           if (showSnackbar)
             showLunaSuccessSnackBar(
-              title: SonarrDatabaseValue.REMOVE_SERIES_DELETE_FILES.data
+              title: SonarrDatabase.REMOVE_SERIES_DELETE_FILES.read()
                   ? 'sonarr.RemovedSeriesWithFiles'.tr()
                   : 'sonarr.RemovedSeries'.tr(),
               message: series.title,
@@ -585,15 +709,15 @@ class SonarrAPIController {
     required SonarrSeriesType seriesType,
     required bool seasonFolder,
     required SonarrQualityProfile qualityProfile,
-    required SonarrLanguageProfile languageProfile,
     required SonarrRootFolder rootFolder,
     required SonarrSeriesMonitorType monitorType,
     required List<SonarrTag> tags,
+    SonarrLanguageProfile? languageProfile,
     bool showSnackbar = true,
   }) async {
     if (context.read<SonarrState>().enabled) {
       series.id = 0;
-      return await context
+      final result = await context
           .read<SonarrState>()
           .api!
           .series
@@ -607,9 +731,9 @@ class SonarrAPIController {
             monitorType: monitorType,
             tags: tags,
             searchForMissingEpisodes:
-                SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_MISSING.data,
+                SonarrDatabase.ADD_SERIES_SEARCH_FOR_MISSING.read(),
             searchForCutoffUnmetEpisodes:
-                SonarrDatabaseValue.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.data,
+                SonarrDatabase.ADD_SERIES_SEARCH_FOR_CUTOFF_UNMET.read(),
           )
           .then((series) {
         if (showSnackbar) {
@@ -631,7 +755,10 @@ class SonarrAPIController {
             error: error,
           );
         }
+        return SonarrSeries();
       });
+      if (result.id == null) return null;
+      return result;
     }
     return null;
   }

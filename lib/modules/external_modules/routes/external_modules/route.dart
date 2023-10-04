@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/external_modules.dart';
+import 'package:lunasea/modules/external_modules/routes/external_modules/widgets/module_tile.dart';
 
-class ExternalModulesHomeRouter extends ExternalModulesPageRouter {
-  ExternalModulesHomeRouter() : super('/externalmodules');
+class ExternalModulesRoute extends StatefulWidget {
+  const ExternalModulesRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ExternalModulesRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ExternalModulesRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -27,16 +20,16 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       module: LunaModule.EXTERNAL_MODULES,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       drawer: _drawer(),
       body: _body(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
       useDrawer: true,
-      title: LunaModule.EXTERNAL_MODULES.name,
+      title: LunaModule.EXTERNAL_MODULES.title,
       scrollControllers: [scrollController],
     );
   }
@@ -44,31 +37,27 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   Widget _drawer() => LunaDrawer(page: LunaModule.EXTERNAL_MODULES.key);
 
   Widget _body() {
-    if (Database.externalModules.box.isEmpty) {
+    if (LunaBox.externalModules.isEmpty) {
       return LunaMessage.moduleNotEnabled(
         context: context,
-        module: LunaModule.EXTERNAL_MODULES.name,
+        module: LunaModule.EXTERNAL_MODULES.title,
       );
     }
     return LunaListView(
       controller: scrollController,
       itemExtent: LunaBlock.calculateItemExtent(1),
-      children: _list as List<Widget>,
+      children: _list,
     );
   }
 
-  List get _list {
-    List<ExternalModulesModuleTile> list = List.generate(
-      Database.externalModules.box.length,
-      (index) => ExternalModulesModuleTile(
-        module: Database.externalModules.box.getAt(index),
-      ),
-    );
-    list.sort(
-      (a, b) => a.module!.displayName!
-          .toLowerCase()
-          .compareTo(b.module!.displayName!.toLowerCase()),
-    );
+  List<Widget> get _list {
+    final list = LunaBox.externalModules.data
+        .map((module) => ExternalModulesModuleTile(module: module))
+        .toList();
+    list.sort((a, b) => a.module!.displayName
+        .toLowerCase()
+        .compareTo(b.module!.displayName.toLowerCase()));
+
     return list;
   }
 }

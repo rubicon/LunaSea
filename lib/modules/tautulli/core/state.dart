@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
 
@@ -34,6 +33,7 @@ class TautulliState extends LunaModuleState {
     _playCountByPlatformStreamTypeGraph = null;
     _playCountByUserStreamTypeGraph = null;
     _librariesTable = null;
+    _serverIdentity = null;
     _searchQuery = '';
 
     // Clear user data
@@ -53,6 +53,7 @@ class TautulliState extends LunaModuleState {
     resetActivity();
     resetUsers();
     resetHistory();
+    resetServerIdentity();
     notifyListeners();
   }
 
@@ -61,39 +62,39 @@ class TautulliState extends LunaModuleState {
   ///////////////
 
   /// API handler instance
-  Tautulli? _api;
-  Tautulli? get api => _api;
+  TautulliAPI? _api;
+  TautulliAPI? get api => _api;
 
   /// Is the API enabled?
-  bool? _enabled;
-  bool? get enabled => _enabled;
+  bool _enabled = false;
+  bool get enabled => _enabled;
 
   /// Tautulli host
-  String? _host;
-  String? get host => _host;
+  String _host = '';
+  String get host => _host;
 
   /// Tautulli API key
-  String? _apiKey;
-  String? get apiKey => _apiKey;
+  String _apiKey = '';
+  String get apiKey => _apiKey;
 
   /// Headers to attach to all requests
-  Map<dynamic, dynamic>? _headers;
-  Map<dynamic, dynamic>? get headers => _headers;
+  Map<dynamic, dynamic> _headers = {};
+  Map<dynamic, dynamic> get headers => _headers;
 
   /// Reset the profile data, reinitializes API instance
   void resetProfile() {
-    ProfileHiveObject _profile = LunaProfile.current;
+    LunaProfile _profile = LunaProfile.current;
     // Copy profile into state
-    _enabled = _profile.tautulliEnabled ?? false;
-    _host = _profile.tautulliHost ?? '';
-    _apiKey = _profile.tautulliKey ?? '';
-    _headers = _profile.tautulliHeaders ?? {};
+    _enabled = _profile.tautulliEnabled;
+    _host = _profile.tautulliHost;
+    _apiKey = _profile.tautulliKey;
+    _headers = _profile.tautulliHeaders;
     // Create the API instance if Tautulli is enabled
-    _api = _enabled!
-        ? Tautulli(
-            host: _host!,
-            apiKey: _apiKey!,
-            headers: Map<String, dynamic>.from(_headers!),
+    _api = _enabled
+        ? TautulliAPI(
+            host: _host,
+            apiKey: _apiKey,
+            headers: Map<String, dynamic>.from(_headers),
           )
         : null;
   }
@@ -107,7 +108,7 @@ class TautulliState extends LunaModuleState {
 
   /// Create the periodic timer to handle refreshing activity data
   void createActivityTimer() => _getActivityTimer = Timer.periodic(
-        Duration(seconds: TautulliDatabaseValue.REFRESH_RATE.data),
+        Duration(seconds: TautulliDatabase.REFRESH_RATE.read()),
         (_) => activity = _api!.activity.getActivity(),
       );
 
@@ -155,7 +156,7 @@ class TautulliState extends LunaModuleState {
     // Reset user table
     if (_api != null) {
       _users = _api!.users.getUsersTable(
-        length: TautulliDatabaseValue.CONTENT_LOAD_LENGTH.data,
+        length: TautulliDatabase.CONTENT_LOAD_LENGTH.read(),
         orderDirection: TautulliOrderDirection.ASCENDING,
         orderColumn: TautulliUsersOrderColumn.FRIENDLY_NAME,
       );
@@ -181,7 +182,7 @@ class TautulliState extends LunaModuleState {
     // Reset user table
     if (_api != null) {
       _history = _api!.history.getHistory(
-        length: TautulliDatabaseValue.CONTENT_LOAD_LENGTH.data,
+        length: TautulliDatabase.CONTENT_LOAD_LENGTH.read(),
         orderDirection: TautulliOrderDirection.ASCENDING,
       );
     }
@@ -192,6 +193,24 @@ class TautulliState extends LunaModuleState {
   Map<int, Future<TautulliHistory>> get individualHistory => _individualHistory;
   void setIndividualHistory(int userId, Future<TautulliHistory> data) {
     _individualHistory[userId] = data;
+    notifyListeners();
+  }
+
+  ///////////////////////
+  /// SERVER IDENTITY ///
+  ///////////////////////
+
+  Future<TautulliServerIdentity>? _serverIdentity;
+  Future<TautulliServerIdentity>? get serverIdentity => _serverIdentity;
+  set serverIdentity(Future<TautulliServerIdentity>? serverIdentity) {
+    _serverIdentity = serverIdentity;
+    notifyListeners();
+  }
+
+  void resetServerIdentity() {
+    if (_api != null) {
+      _serverIdentity = _api!.miscellaneous.getServerIdentity();
+    }
     notifyListeners();
   }
 
@@ -299,7 +318,7 @@ class TautulliState extends LunaModuleState {
       _statistics = _api!.history.getHomeStats(
         timeRange: _statisticsTimeRange.value,
         statsType: _statisticsType,
-        statsCount: TautulliDatabaseValue.STATISTICS_STATS_COUNT.data,
+        statsCount: TautulliDatabase.STATISTICS_STATS_COUNT.read(),
       );
     notifyListeners();
   }
@@ -318,7 +337,7 @@ class TautulliState extends LunaModuleState {
   void resetRecentlyAdded() {
     if (_api != null)
       _recentlyAdded = _api!.libraries.getRecentlyAdded(
-        count: TautulliDatabaseValue.CONTENT_LOAD_LENGTH.data,
+        count: TautulliDatabase.CONTENT_LOAD_LENGTH.read(),
       );
     notifyListeners();
   }
@@ -345,7 +364,7 @@ class TautulliState extends LunaModuleState {
   void resetDailyPlayCountGraph() {
     if (_api != null)
       _dailyPlayCountGraph = _api!.history.getPlaysByDate(
-        timeRange: TautulliDatabaseValue.GRAPHS_LINECHART_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_LINECHART_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -361,7 +380,7 @@ class TautulliState extends LunaModuleState {
   void resetPlaysByMonthGraph() {
     if (_api != null)
       _playsByMonthGraph = _api!.history.getPlaysPerMonth(
-        timeRange: TautulliDatabaseValue.GRAPHS_MONTHS.data,
+        timeRange: TautulliDatabase.GRAPHS_MONTHS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -379,7 +398,7 @@ class TautulliState extends LunaModuleState {
   void resetPlayCountByDayOfWeekGraph() {
     if (_api != null)
       _playCountByDayOfWeekGraph = _api!.history.getPlaysByDayOfWeek(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -397,7 +416,7 @@ class TautulliState extends LunaModuleState {
   void resetPlayCountByTopPlatformsGraph() {
     if (_api != null)
       _playCountByTopPlatformsGraph = _api!.history.getPlaysByTopTenPlatforms(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -415,7 +434,7 @@ class TautulliState extends LunaModuleState {
   void resetPlayCountByTopUsersGraph() {
     if (_api != null)
       _playCountByTopUsersGraph = _api!.history.getPlaysByTopTenUsers(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -441,7 +460,7 @@ class TautulliState extends LunaModuleState {
   void resetDailyStreamTypeBreakdownGraph() {
     if (_api != null)
       _dailyStreamTypeBreakdownGraph = _api!.history.getPlaysByStreamType(
-        timeRange: TautulliDatabaseValue.GRAPHS_LINECHART_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_LINECHART_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -460,7 +479,7 @@ class TautulliState extends LunaModuleState {
     if (_api != null)
       _playCountBySourceResolutionGraph =
           _api!.history.getPlaysBySourceResolution(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -479,7 +498,7 @@ class TautulliState extends LunaModuleState {
     if (_api != null)
       _playCountByStreamResolutionGraph =
           _api!.history.getPlaysByStreamResolution(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -498,7 +517,7 @@ class TautulliState extends LunaModuleState {
     if (_api != null)
       _playCountByPlatformStreamTypeGraph =
           _api!.history.getStreamTypeByTopTenPlatforms(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -517,7 +536,7 @@ class TautulliState extends LunaModuleState {
     if (_api != null)
       _playCountByUserStreamTypeGraph =
           _api!.history.getStreamTypeByTopTenUsers(
-        timeRange: TautulliDatabaseValue.GRAPHS_DAYS.data,
+        timeRange: TautulliDatabase.GRAPHS_DAYS.read(),
         yAxis: _graphYAxis,
       );
     notifyListeners();
@@ -545,7 +564,7 @@ class TautulliState extends LunaModuleState {
   void resetLibrariesTable() {
     if (_api != null)
       _librariesTable = _api!.libraries.getLibrariesTable(
-        length: TautulliDatabaseValue.CONTENT_LOAD_LENGTH.data,
+        length: TautulliDatabase.CONTENT_LOAD_LENGTH.read(),
         orderColumn: TautulliLibrariesOrderColumn.SECTION_NAME,
         orderDirection: TautulliOrderDirection.ASCENDING,
       );
@@ -602,7 +621,7 @@ class TautulliState extends LunaModuleState {
   void fetchSearch() {
     _search = _api!.libraries.search(
       query: _searchQuery,
-      limit: TautulliDatabaseValue.CONTENT_LOAD_LENGTH.data,
+      limit: TautulliDatabase.CONTENT_LOAD_LENGTH.read(),
     );
     notifyListeners();
   }
@@ -614,7 +633,7 @@ class TautulliState extends LunaModuleState {
   /// Get the direct URL to an image via `pms_image_proxy` using a rating key.
   String? getImageURLFromRatingKey(int? ratingKey, {int width = 300}) {
     if (ratingKey == null) return null;
-    if (host!.endsWith('/'))
+    if (host.endsWith('/'))
       return [
         host,
         'api/v2?apikey=$apiKey',
@@ -634,7 +653,7 @@ class TautulliState extends LunaModuleState {
   /// Get the direct URL to an image via `pms_image_proxy` using an image path.
   String? getImageURLFromPath(String? path, {int width = 300}) {
     if (path == null || path.isEmpty) return null;
-    if (host!.endsWith('/'))
+    if (host.endsWith('/'))
       return [
         host,
         'api/v2?apikey=$apiKey',

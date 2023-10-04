@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/dashboard.dart';
+import 'package:lunasea/database/tables/dashboard.dart';
+
+import 'package:lunasea/widgets/ui.dart';
+import 'package:lunasea/vendor.dart';
+import 'package:lunasea/modules/dashboard/routes/dashboard/widgets/navigation_bar.dart';
 
 class DashboardDialogs {
   Future<Tuple2<bool, int>> defaultPage(BuildContext context) async {
@@ -17,10 +20,10 @@ class DashboardDialogs {
       context: context,
       title: 'lunasea.Page'.tr(),
       content: List.generate(
-        DashboardNavigationBar.titles.length,
+        HomeNavigationBar.titles.length,
         (index) => LunaDialog.tile(
-          text: DashboardNavigationBar.titles[index],
-          icon: DashboardNavigationBar.icons[index],
+          text: HomeNavigationBar.titles[index],
+          icon: HomeNavigationBar.icons[index],
           iconColor: LunaColours().byListIndex(index),
           onTap: () => _setValues(true, index),
         ),
@@ -35,7 +38,7 @@ class DashboardDialogs {
     bool _flag = false;
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController _textController = TextEditingController(
-      text: DashboardDatabaseValue.CALENDAR_DAYS_PAST.data.toString(),
+      text: DashboardDatabase.CALENDAR_DAYS_PAST.read().toString(),
     );
 
     void _setValues(bool flag) {
@@ -83,7 +86,7 @@ class DashboardDialogs {
     bool _flag = false;
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController _textController = TextEditingController(
-      text: DashboardDatabaseValue.CALENDAR_DAYS_FUTURE.data.toString(),
+      text: DashboardDatabase.CALENDAR_DAYS_FUTURE.read().toString(),
     );
 
     void _setValues(bool flag) {

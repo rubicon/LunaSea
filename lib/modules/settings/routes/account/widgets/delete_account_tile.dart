@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/firebase/auth.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/router.dart';
 
-class SettingsAccountDeleteAccountTile extends StatefulWidget {
-  const SettingsAccountDeleteAccountTile({
+class DeleteAccountTile extends StatefulWidget {
+  const DeleteAccountTile({
     Key? key,
   }) : super(key: key);
 
@@ -11,7 +13,7 @@ class SettingsAccountDeleteAccountTile extends StatefulWidget {
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<SettingsAccountDeleteAccountTile> {
+class _State extends State<DeleteAccountTile> {
   LunaLoadingState _loadingState = LunaLoadingState.INACTIVE;
 
   void updateState(LunaLoadingState state) {
@@ -47,7 +49,7 @@ class _State extends State<SettingsAccountDeleteAccountTile> {
             title: 'settings.AccountDeleted'.tr(),
             message: 'settings.AccountDeletedMessage'.tr(),
           );
-          Navigator.of(context).lunaSafetyPop();
+          LunaRouter().popSafely();
         } else {
           updateState(LunaLoadingState.INACTIVE);
           showLunaErrorSnackBar(

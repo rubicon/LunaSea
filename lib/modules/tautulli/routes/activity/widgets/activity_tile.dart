@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliActivityTile extends StatelessWidget {
   final TautulliSession session;
@@ -40,7 +42,7 @@ class TautulliActivityTile extends StatelessWidget {
       return TextSpan(
         children: [
           TextSpan(text: session.parentTitle),
-          TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+          TextSpan(text: LunaUI.TEXT_BULLET.pad()),
           TextSpan(
               text: 'tautulli.Episode'.tr(args: [
             session.mediaIndex?.toString() ?? LunaUI.TEXT_EMDASH
@@ -62,7 +64,7 @@ class TautulliActivityTile extends StatelessWidget {
       return TextSpan(
         children: [
           TextSpan(text: session.parentTitle),
-          TextSpan(text: LunaUI.TEXT_EMDASH.lunaPad()),
+          TextSpan(text: LunaUI.TEXT_EMDASH.pad()),
           TextSpan(
             style: const TextStyle(
               fontStyle: FontStyle.italic,
@@ -84,7 +86,7 @@ class TautulliActivityTile extends StatelessWidget {
 
   TextSpan _subtitle3() {
     return TextSpan(
-      text: session.lunaTranscodeDecision,
+      text: session.formattedStream(),
       style: const TextStyle(
         fontWeight: LunaUI.FONT_WEIGHT_BOLD,
         color: LunaColours.accent,
@@ -117,6 +119,9 @@ class TautulliActivityTile extends StatelessWidget {
     );
   }
 
-  Future<void> _enterDetails(BuildContext context) async =>
-      TautulliActivityDetailsRouter().navigateTo(context, session.sessionId!);
+  Future<void> _enterDetails(BuildContext context) async {
+    TautulliRoutes.ACTIVITY_DETAILS.go(params: {
+      'session': session.sessionKey.toString(),
+    });
+  }
 }

@@ -1,7 +1,10 @@
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/routes/radarr.dart';
 
 class RadarrQueueTile extends StatelessWidget {
   final RadarrQueueRecord record;
@@ -30,14 +33,15 @@ class RadarrQueueTile extends StatelessWidget {
             _subtitle2(),
           ],
           expandedHighlightedNodes: _highlightedNodes(),
-          expandedTableContent: _tableContent(movie!),
+          expandedTableContent: _tableContent(movie),
           expandedTableButtons: _tableButtons(context),
           collapsedTrailing: LunaIconButton(
             icon: record.lunaStatusIcon,
             color: record.lunaStatusColor,
           ),
-          onLongPress: () async =>
-              RadarrMoviesDetailsRouter().navigateTo(context, record.movieId!),
+          onLongPress: () => RadarrRoutes.MOVIE.go(params: {
+            'movie': record.movieId!.toString(),
+          }),
         );
       },
     );
@@ -57,13 +61,14 @@ class RadarrQueueTile extends StatelessWidget {
             fontWeight: LunaUI.FONT_WEIGHT_BOLD,
           ),
         ),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: record.timeLeft ?? LunaUI.TEXT_EMDASH),
       ],
     );
   }
 
-  List<LunaTableContent> _tableContent(RadarrMovie movie) {
+  List<LunaTableContent> _tableContent(RadarrMovie? movie) {
+    if (movie == null) return [];
     return [
       LunaTableContent(
           title: 'radarr.Movie'.tr(), body: record.lunaMovieTitle(movie)),
@@ -72,8 +77,7 @@ class RadarrQueueTile extends StatelessWidget {
       LunaTableContent(title: 'Client', body: record.lunaDownloadClient),
       LunaTableContent(title: 'Indexer', body: record.lunaIndexer),
       LunaTableContent(
-          title: 'radarr.Size'.tr(),
-          body: record.size!.toInt().lunaBytesToString()),
+          title: 'radarr.Size'.tr(), body: record.size!.toInt().asBytes()),
       LunaTableContent(
           title: 'Time Left', body: record.timeLeft ?? LunaUI.TEXT_EMDASH),
     ];
@@ -126,10 +130,12 @@ class RadarrQueueTile extends StatelessWidget {
           record.trackedDownloadStatus == RadarrTrackedDownloadStatus.WARNING &&
           (record.outputPath ?? '').isNotEmpty)
         LunaButton.text(
-            icon: Icons.download_done_rounded,
-            text: 'radarr.Import'.tr(),
-            onTap: () async => RadarrManualImportDetailsRouter()
-                .navigateTo(context, record.outputPath!)),
+          icon: Icons.download_done_rounded,
+          text: 'radarr.Import'.tr(),
+          onTap: () => RadarrRoutes.MANUAL_IMPORT_DETAILS.go(queryParams: {
+            'path': record.outputPath!,
+          }),
+        ),
       LunaButton.text(
         icon: Icons.delete_rounded,
         color: LunaColours.red,
@@ -144,9 +150,9 @@ class RadarrQueueTile extends StatelessWidget {
                   .queue
                   .delete(
                     id: record.id!,
-                    blacklist: RadarrDatabaseValue.QUEUE_BLACKLIST.data,
+                    blacklist: RadarrDatabase.QUEUE_BLACKLIST.read(),
                     removeFromClient:
-                        RadarrDatabaseValue.QUEUE_REMOVE_FROM_CLIENT.data,
+                        RadarrDatabase.QUEUE_REMOVE_FROM_CLIENT.read(),
                   )
                   .then((_) {
                 showLunaSuccessSnackBar(

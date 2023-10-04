@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/radarr.dart';
 
 class RadarrMovieDetailsFilesFileBlock extends StatefulWidget {
@@ -35,7 +36,7 @@ class _State extends State<RadarrMovieDetailsFilesFileBlock> {
             widget.file.mediaInfo?.lunaAudioCodec,
             if (widget.file.mediaInfo?.audioChannels != null)
               widget.file.mediaInfo?.audioChannels.toString(),
-          ].join(LunaUI.TEXT_BULLET.lunaPad()),
+          ].join(LunaUI.TEXT_BULLET.pad()),
         ),
         LunaTableContent(
           title: 'size',
@@ -90,72 +91,67 @@ class _State extends State<RadarrMovieDetailsFilesFileBlock> {
 
   Future<void> _viewMediaInfo() async {
     LunaBottomModalSheet().show(
-      context: context,
       builder: (context) => LunaListViewModal(
         children: [
-          const LunaHeader(text: 'Video'),
+          LunaHeader(text: 'radarr.Video'.tr()),
           LunaTableCard(
             content: [
               LunaTableContent(
-                title: 'bit depth',
+                title: 'radarr.BitDepth'.tr(),
                 body: widget.file.mediaInfo?.lunaVideoBitDepth,
               ),
               LunaTableContent(
-                title: 'bitrate',
-                body: widget.file.mediaInfo?.lunaVideoBitrate,
-              ),
-              LunaTableContent(
-                title: 'codec',
+                title: 'radarr.Codec'.tr(),
                 body: widget.file.mediaInfo?.lunaVideoCodec,
               ),
               LunaTableContent(
-                title: 'fps',
+                title: 'radarr.DynamicRange'.tr(),
+                body: widget.file.mediaInfo?.lunaVideoDynamicRange,
+              ),
+              LunaTableContent(
+                title: 'radarr.FPS'.tr(),
                 body: widget.file.mediaInfo?.lunaVideoFps,
               ),
               LunaTableContent(
-                title: 'resolution',
+                title: 'radarr.Resolution'.tr(),
                 body: widget.file.mediaInfo?.lunaVideoResolution,
               ),
             ],
           ),
-          const LunaHeader(text: 'Audio'),
+          LunaHeader(text: 'radarr.Audio'.tr()),
           LunaTableCard(
             content: [
               LunaTableContent(
-                title: 'bitrate',
-                body: widget.file.mediaInfo?.lunaAudioBitrate,
-              ),
-              LunaTableContent(
-                title: 'channels',
+                title: 'radarr.Channels'.tr(),
                 body: widget.file.mediaInfo?.lunaAudioChannels,
               ),
               LunaTableContent(
-                title: 'codec',
+                title: 'radarr.Codec'.tr(),
                 body: widget.file.mediaInfo?.lunaAudioCodec,
               ),
               LunaTableContent(
-                title: 'features',
-                body: widget.file.mediaInfo?.lunaAudioAdditionalFeatures,
-              ),
-              LunaTableContent(
-                title: 'languages',
+                title: 'radarr.Languages'.tr(),
                 body: widget.file.mediaInfo?.lunaAudioLanguages,
               ),
               LunaTableContent(
-                title: 'streams',
+                title: 'radarr.Streams'.tr(),
                 body: widget.file.mediaInfo?.lunaAudioStreamCount,
               ),
             ],
           ),
-          const LunaHeader(text: 'Other'),
+          LunaHeader(text: 'radarr.Other'.tr()),
           LunaTableCard(
             content: [
               LunaTableContent(
-                title: 'runtime',
+                title: 'radarr.Runtime'.tr(),
                 body: widget.file.mediaInfo?.lunaRunTime,
               ),
               LunaTableContent(
-                title: 'subtitles',
+                title: 'radarr.ScanType'.tr(),
+                body: widget.file.mediaInfo?.lunaScanType,
+              ),
+              LunaTableContent(
+                title: 'radarr.Subtitles'.tr(),
                 body: widget.file.mediaInfo?.lunaSubtitles,
               ),
             ],

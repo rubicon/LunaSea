@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/routes/radarr.dart';
 
 enum _RadarrCatalogueTileType {
   TILE,
@@ -105,10 +107,10 @@ class _State extends State<RadarrCatalogueTile> {
     return TextSpan(
       children: [
         _buildChildTextSpan(widget.movie.lunaYear, RadarrMoviesSorting.YEAR),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         _buildChildTextSpan(
             widget.movie.lunaRuntime, RadarrMoviesSorting.RUNTIME),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         _buildChildTextSpan(
             widget.movie.lunaStudio, RadarrMoviesSorting.STUDIO),
       ],
@@ -120,10 +122,10 @@ class _State extends State<RadarrCatalogueTile> {
       children: [
         _buildChildTextSpan(widget.profile?.name ?? LunaUI.TEXT_EMDASH,
             RadarrMoviesSorting.QUALITY_PROFILE),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         _buildChildTextSpan(widget.movie.lunaMinimumAvailability,
             RadarrMoviesSorting.MIN_AVAILABILITY),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         if (context.read<RadarrState>().moviesSortType !=
                 RadarrMoviesSorting.IN_CINEMAS &&
             context.read<RadarrState>().moviesSortType !=
@@ -201,8 +203,11 @@ class _State extends State<RadarrCatalogueTile> {
     );
   }
 
-  Future<void> _onTap() async =>
-      RadarrMoviesDetailsRouter().navigateTo(context, widget.movie.id ?? -1);
+  Future<void> _onTap() async {
+    RadarrRoutes.MOVIE.go(params: {
+      'movie': widget.movie.id!.toString(),
+    });
+  }
 
   Future<void> _onLongPress() async {
     Tuple2<bool, RadarrMovieSettingsType?> values =

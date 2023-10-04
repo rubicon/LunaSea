@@ -1,40 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/nzbget.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationNZBGetRouter extends SettingsPageRouter {
-  SettingsConfigurationNZBGetRouter() : super('/settings/configuration/nzbget');
+class ConfigurationNZBGetRoute extends StatefulWidget {
+  const ConfigurationNZBGetRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationNZBGetRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationNZBGetRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: LunaModule.NZBGET.name,
+      title: LunaModule.NZBGET.title,
       scrollControllers: [scrollController],
     );
   }
@@ -54,12 +47,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _enabledToggle() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic _, __) => LunaBlock(
-        title: 'Enable ${LunaModule.NZBGET.name}',
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'settings.EnableModule'.tr(args: [LunaModule.NZBGET.title]),
         trailing: LunaSwitch(
-          value: LunaProfile.current.nzbgetEnabled ?? false,
+          value: LunaProfile.current.nzbgetEnabled,
           onChanged: (value) {
             LunaProfile.current.nzbgetEnabled = value;
             LunaProfile.current.save();
@@ -72,13 +64,15 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _connectionDetailsPage() {
     return LunaBlock(
-      title: 'Connection Details',
-      body: const [TextSpan(text: 'Connection Details for NZBGet')],
+      title: 'settings.ConnectionDetails'.tr(),
+      body: [
+        TextSpan(
+          text: 'settings.ConnectionDetailsDescription'
+              .tr(args: [LunaModule.NZBGET.title]),
+        ),
+      ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async {
-        SettingsConfigurationNZBGetConnectionDetailsRouter()
-            .navigateTo(context);
-      },
+      onTap: SettingsRoutes.CONFIGURATION_NZBGET_CONNECTION_DETAILS.go,
     );
   }
 
@@ -87,8 +81,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.DefaultPages'.tr(),
       body: [TextSpan(text: 'settings.DefaultPagesDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationNZBGetDefaultPagesRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_NZBGET_DEFAULT_PAGES.go,
     );
   }
 }

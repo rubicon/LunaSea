@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/lidarr.dart';
+import 'package:lunasea/router/routes/lidarr.dart';
 
 class LidarrAddSearchResultTile extends StatelessWidget {
   final bool alreadyAdded;
@@ -22,7 +24,7 @@ class LidarrAddSearchResultTile extends StatelessWidget {
         customBodyMaxLines: 3,
         trailing: alreadyAdded ? null : const LunaIconButton.arrow(),
         posterIsSquare: true,
-        posterHeaders: LunaProfile.current.getLidarr()['headers'],
+        posterHeaders: LunaProfile.current.lidarrHeaders,
         posterPlaceholderIcon: LunaIcons.USER,
         posterUrl: _posterUrl,
         onTap: () async => _enterDetails(context),
@@ -32,7 +34,7 @@ class LidarrAddSearchResultTile extends StatelessWidget {
               title: 'No Discogs Page Available',
               message: 'No Discogs URL is available',
             );
-          data.discogsLink!.lunaOpenGenericLink();
+          data.discogsLink!.openLink();
         },
       );
 
@@ -51,24 +53,7 @@ class LidarrAddSearchResultTile extends StatelessWidget {
         message: data.title,
       );
     } else {
-      final dynamic result = await Navigator.of(context).pushNamed(
-        LidarrAddDetails.ROUTE_NAME,
-        arguments: LidarrAddDetailsArguments(data: data),
-      );
-      if (result != null) {
-        switch (result[0]) {
-          case 'artist_added':
-            Navigator.of(context).pop(result);
-            break;
-          default:
-            LunaLogger().warning(
-              'LidarrAddSearchResultTile',
-              '_enterDetails',
-              'Unknown Case: ${result[0]}',
-            );
-            break;
-        }
-      }
+      LidarrRoutes.ADD_ARTIST_DETAILS.go(extra: data);
     }
   }
 }

@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/overseerr.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationOverseerrRouter extends SettingsPageRouter {
-  SettingsConfigurationOverseerrRouter()
-      : super('/settings/configuration/overseerr');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationOverseerrRoute extends StatefulWidget {
+  const ConfigurationOverseerrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationOverseerrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationOverseerrRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -35,7 +27,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: LunaModule.OVERSEERR.name,
+      title: LunaModule.OVERSEERR.title,
       scrollControllers: [scrollController],
     );
   }
@@ -52,12 +44,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _enabledToggle() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic _, __) => LunaBlock(
-        title: 'Enable ${LunaModule.OVERSEERR.name}',
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'settings.EnableModule'.tr(args: [LunaModule.OVERSEERR.title]),
         trailing: LunaSwitch(
-          value: LunaProfile.current.overseerrEnabled ?? false,
+          value: LunaProfile.current.overseerrEnabled,
           onChanged: (value) {
             LunaProfile.current.overseerrEnabled = value;
             LunaProfile.current.save();
@@ -74,13 +65,12 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       body: [
         TextSpan(
           text: 'settings.ConnectionDetailsDescription'.tr(
-            args: [LunaModule.OVERSEERR.name],
+            args: [LunaModule.OVERSEERR.title],
           ),
         ),
       ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationOverseerrConnectionDetailsRouter()
-          .navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_OVERSEERR_CONNECTION_DETAILS.go,
     );
   }
 }

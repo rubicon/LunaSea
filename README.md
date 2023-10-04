@@ -1,10 +1,6 @@
 # <img width="40px" src="./assets/images/branding_logo.png" alt="LunaSea"></img>&nbsp;&nbsp;LunaSea
 
-[![App Store](https://img.shields.io/badge/%20Download-iOS-red?logo=app-store&color=%232196F3&logoColor=white&style=flat)](https://www.lunasea.app/appstore)
-[![Play Store](https://img.shields.io/badge/%20Download-Android-red?logo=google-play&color=%234CAF50&logoColor=white&style=flat)](https://www.lunasea.app/playstore)
-[![License](https://img.shields.io/github/license/CometTools/LunaSea?style=flat)](https://github.com/CometTools/LunaSea/blob/production/LICENSE)
-
-LunaSea is a fully featured, open source self-hosted controller! Focused on giving you a seamless experience between all of your self-hosted media software, LunaSea supports:
+LunaSea is a fully featured, open source self-hosted controller focused on giving you a seamless experience between all of your self-hosted media software remotely on your devices. LunaSea currently supports:
 
 - [Lidarr](https://github.com/lidarr/lidarr)
 - [Radarr](https://github.com/radarr/radarr)
@@ -16,34 +12,37 @@ LunaSea is a fully featured, open source self-hosted controller! Focused on givi
 - [Tautulli](https://github.com/Tautulli/Tautulli)
 - [Wake on LAN](https://en.wikipedia.org/wiki/Wake-on-LAN)
 
-LunaSea even comes with support for multiple instances of applications using profiles, backing up and restoring your configuration to your filesystem, an AMOLED black theme, and more!
+LunaSea even comes with support for webhook-based push notifications, multiple instances of applications using profiles, backup and restore functionality for your configuration, an AMOLED black theme, and more!
 
 > Please note that LunaSea is purely a remote control application, it does not offer any functionality without software installed on a server/computer.
 
+## Releases
+
+All releases for every build channel can be downloaded from the [build bucket](https://builds.lunasea.app), and all stable releases for all platforms are also available on [GitHub](https://github.com/JagandeepBrar/lunasea/releases).
+
+- [Android](https://docs.lunasea.app/releases/android)
+- [iOS](https://docs.lunasea.app/releases/ios)
+- [Linux](https://docs.lunasea.app/releases/linux)
+- [macOS](https://docs.lunasea.app/releases/macos)
+- [Web](https://docs.lunasea.app/releases/web)
+- [Windows](https://docs.lunasea.app/releases/windows)
+
+Interested in using prerelease build channels of LunaSea? Learn the differences between all the build channels and how to join one [here](https://www.lunasea.app/build-channels)!
+
 ## Getting Started
 
-- [Releases](https://github.com/CometTools/LunaSea/releases)
-  - [(Android) Play Store](https://www.lunasea.app/playstore)
-  - [(iOS) App Store](https://www.lunasea.app/appstore)
-  - [(macOS) GitHub](https://github.com/CometTools/LunaSea/releases)
-- [Build Guide](https://github.com/CometTools/LunaSea/wiki/Build-Guide)
-  - [(Android) Keystore Setup](https://github.com/CometTools/LunaSea/wiki/Configure-Keystore)
-  - [(iOS) Development Certificate Setup](https://github.com/CometTools/LunaSea/wiki/Setup-of-Development-Certificate)
+- [Build Guide](https://github.com/JagandeepBrar/lunasea/wiki/Build-Guide)
 - [Documentation](https://www.lunasea.app/docs)
-- [Feedback & Feature Requests Board](https://www.lunasea.app/feedback)
 - [Frequently Asked Questions](https://docs.lunasea.app/getting-started/frequently-asked-questions)
 
 ## Support
 
 [![Discord](https://img.shields.io/discord/673591529834807358?label=Discord&style=flat)](https://www.lunasea.app/discord)
 [![Reddit](https://img.shields.io/reddit/subreddit-subscribers/LunaSeaApp?label=r%2FLunaSeaApp&style=flat)](https://www.lunasea.app/reddit)
-[![Hellonext](https://img.shields.io/badge/Feedback%20Board-Hellonext-red?style=flat&logo=redux&color=%234ECCA3&logoColor=white)](https://www.lunasea.app/feedback)
 
-**Please only post bugs and issues to GitHub**. Use the [feedback & feature requests board](https://www.lunasea.app/feedback) for requests and general feedback.
+**Please only create an issue on GitHub for bugs and software issues**. Post in the [discussions board](https://github.com/JagandeepBrar/lunasea/discussions) or the [Discord forum](https://www.lunasea.app/discord) for requests and general feedback.
 
-- [Discord](https://www.lunasea.app/discord)
-- [Email](mailto:hello@comet.tools)
-- [GitHub (Issues & Bug Reports Only)](https://github.com/CometTools/LunaSea/issues)
+- [Email](mailto:hello@lunasea.app)
 - [Reddit](https://www.lunasea.app/reddit)
 - [Website](https://www.lunasea.app)
 
@@ -54,49 +53,4 @@ LunaSea even comes with support for multiple instances of applications using pro
 Thank you to all tools and services for offering free subscriptions for open-source projects!
 
 - [Gitbook](https://www.gitbook.com): Gitbook is used to host LunaSea's documentation
-- [Hellonext](https://www.hellonext.co): Hellonext is used to host LunaSea's feedback board and roadmap
-- [Instatus](https://instatus.com): Instatus is used to host LunaSea's status page
 - [Weblate](https://weblate.org): Weblate is used to gather community localization for LunaSea
-
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-Thank you to everyone who has helped contribute to LunaSea, from development to localization efforts!
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tr>
-    <td align="center"><a href="https://www.jagandeepbrar.io"><img src="https://avatars.githubusercontent.com/u/3048295?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jagandeep Brar</b></sub></a><br /><a href="https://github.com/CometTools/LunaSea/commits?author=JagandeepBrar" title="Code">💻</a> <a href="#design-JagandeepBrar" title="Design">🎨</a> <a href="#ideas-JagandeepBrar" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/lightglitch"><img src="https://avatars.githubusercontent.com/u/196953?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mário Franco</b></sub></a><br /><a href="https://github.com/CometTools/LunaSea/commits?author=lightglitch" title="Code">💻</a> <a href="#translation-lightglitch" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://pythonexplainedto.me/"><img src="https://avatars.githubusercontent.com/u/41962737?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Patrik Hauguth</b></sub></a><br /><a href="#translation-Phaugt" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://liberapay.com/kingu/"><img src="https://avatars.githubusercontent.com/u/13802408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Allan Nordhøy</b></sub></a><br /><a href="#translation-comradekingu" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/cpt-kuesel"><img src="https://avatars.githubusercontent.com/u/79487102?v=4?s=100" width="100px;" alt=""/><br /><sub><b>cpt-kuesel</b></sub></a><br /><a href="#translation-cpt-kuesel" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/KovalevArtem"><img src="https://avatars.githubusercontent.com/u/36500228?v=4?s=100" width="100px;" alt=""/><br /><sub><b>KovalevArtem</b></sub></a><br /><a href="#translation-KovalevArtem" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/iFelix18"><img src="https://avatars.githubusercontent.com/u/19800006?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Davide</b></sub></a><br /><a href="#translation-iFelix18" title="Translation">🌍</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/AliMickey"><img src="https://avatars.githubusercontent.com/u/60691199?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Micky</b></sub></a><br /><a href="https://github.com/CometTools/LunaSea/commits?author=AliMickey" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://ersen.srht.site/"><img src="https://avatars.githubusercontent.com/u/88676873?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Oğuz Ersen</b></sub></a><br /><a href="#translation-ersen0" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/bittin"><img src="https://avatars.githubusercontent.com/u/43197?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bittin</b></sub></a><br /><a href="#translation-bittin" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/almontegil"><img src="https://avatars.githubusercontent.com/u/68232356?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gil</b></sub></a><br /><a href="#translation-almontegil" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/TheSander562"><img src="https://avatars.githubusercontent.com/u/14059770?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sander Lambrechts</b></sub></a><br /><a href="#translation-TheSander562" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/Guilhermerrrr"><img src="https://avatars.githubusercontent.com/u/92966143?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Guilhermerrrr</b></sub></a><br /><a href="#translation-Guilhermerrrr" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/Ben-Wallner"><img src="https://avatars.githubusercontent.com/u/24373331?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ben Biber</b></sub></a><br /><a href="#translation-Ben-Wallner" title="Translation">🌍</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/Sytom"><img src="https://avatars.githubusercontent.com/u/30535521?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sytom</b></sub></a><br /><a href="#translation-Sytom" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://xxzj990.top"><img src="https://avatars.githubusercontent.com/u/5134154?v=4?s=100" width="100px;" alt=""/><br /><sub><b>xxzj990</b></sub></a><br /><a href="#translation-xxzj990" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/Qstick"><img src="https://avatars.githubusercontent.com/u/376117?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Qstick</b></sub></a><br /><a href="https://github.com/CometTools/LunaSea/commits?author=Qstick" title="Code">💻</a></td>
-    <td align="center"><a href="https://www.openflixr.com"><img src="https://avatars.githubusercontent.com/u/3245077?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mark Frelink</b></sub></a><br /><a href="#translation-mfrelink" title="Translation">🌍</a></td>
-  </tr>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->

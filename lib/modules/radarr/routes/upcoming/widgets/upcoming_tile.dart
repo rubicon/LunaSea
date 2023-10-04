@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/routes/radarr.dart';
 
 class RadarrUpcomingTile extends StatefulWidget {
   static final itemExtent = LunaBlock.calculateItemExtent(3);
@@ -49,9 +52,9 @@ class _State extends State<RadarrUpcomingTile> {
     return TextSpan(
       children: [
         TextSpan(text: widget.movie.lunaYear),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaRuntime),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaStudio),
       ],
     );
@@ -61,9 +64,9 @@ class _State extends State<RadarrUpcomingTile> {
     return TextSpan(
       children: [
         TextSpan(text: widget.profile!.lunaName),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaMinimumAvailability),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaReleaseDate),
       ],
     );
@@ -75,11 +78,11 @@ class _State extends State<RadarrUpcomingTile> {
     String type;
     if (widget.movie.lunaIsInCinemas && !widget.movie.lunaIsReleased) {
       color = LunaColours.blue;
-      _days = widget.movie.lunaEarlierReleaseDate?.lunaDaysDifference;
+      _days = widget.movie.lunaEarlierReleaseDate?.asDaysDifference();
       type = 'release';
     } else if (!widget.movie.lunaIsInCinemas && !widget.movie.lunaIsReleased) {
       color = LunaColours.orange;
-      _days = widget.movie.inCinemas?.lunaDaysDifference;
+      _days = widget.movie.inCinemas?.asDaysDifference();
       type = 'cinema';
     } else {
       color = LunaColours.grey;
@@ -121,11 +124,15 @@ class _State extends State<RadarrUpcomingTile> {
         movieId: widget.movie.id!,
         title: widget.movie.title!,
       ),
-      onLongPress: () async =>
-          RadarrReleasesRouter().navigateTo(context, widget.movie.id ?? -1),
+      onLongPress: () => RadarrRoutes.MOVIE_RELEASES.go(params: {
+        'movie': widget.movie.id!.toString(),
+      }),
     );
   }
 
-  Future<void> _onTap() async =>
-      RadarrMoviesDetailsRouter().navigateTo(context, widget.movie.id!);
+  Future<void> _onTap() async {
+    RadarrRoutes.MOVIE.go(params: {
+      'movie': widget.movie.id!.toString(),
+    });
+  }
 }

@@ -1,29 +1,28 @@
-import 'package:dio/dio.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/models/indexer.dart';
 import 'package:lunasea/modules/search.dart';
-import 'package:xml/xml.dart';
 
 class NewznabAPI {
   static const _USER_AGENT =
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1 Safari/605.1.15';
   final Dio _dio;
-  final IndexerHiveObject indexer;
+  final LunaIndexer indexer;
 
   NewznabAPI._internal(this._dio, this.indexer);
 
-  factory NewznabAPI.fromIndexer(IndexerHiveObject indexer) {
+  factory NewznabAPI.fromIndexer(LunaIndexer indexer) {
     Dio _dio = Dio(
       BaseOptions(
         method: 'GET',
         baseUrl: '${indexer.host}/api',
         headers: {
           'User-Agent': _USER_AGENT,
-          if (indexer.headers?.isNotEmpty ?? false)
-            ...indexer.headers as Map<String, dynamic>,
+          if (indexer.headers.isNotEmpty) ...indexer.headers,
         },
         queryParameters: {
           if (indexer.apiKey != '') 'apikey': indexer.apiKey,
         },
+        responseType: ResponseType.plain,
         followRedirects: true,
         maxRedirects: 5,
       ),
@@ -110,6 +109,7 @@ class NewznabAPI {
         },
         followRedirects: true,
         maxRedirects: 5,
+        responseType: ResponseType.plain,
       ),
     ).get(data.linkDownload);
     return response.data;

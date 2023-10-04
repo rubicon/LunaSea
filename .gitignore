@@ -29,9 +29,9 @@
 .pub-cache/
 .pub/
 /build/
+*.g.dart
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
@@ -41,33 +41,49 @@ ios/Flutter/.last_build_id
 output/
 *.packages
 coverage/
+lib/system/environment.dart
 
 # XCode Build Artifacts
 ios/build/
 ios/Runner.app.dSYM.zip
-ios/Runner.ipa
-
 macos/LunaSea.app
 macos/LunaSea.app.dSYM.zip
-macos/LunaSea.pkg
+macos/LunaSea.app.zip
 
 # Fastlane
-/android/fastlane/README.md
 /android/fastlane/report.xml
-/ios/fastlane/README.md
 /ios/fastlane/report.xml
-/macos/fastlane/README.md
 /macos/fastlane/report.xml
+/android/fastlane/Preview.html
+/ios/fastlane/Preview.html
+/macos/fastlane/Preview.html
 
-# Blackbox
-/.blackbox/pubring.gpg~
-/.blackbox/pubring.kbx~
-/.blackbox/secring.gpg
-
-android/app/google-services.json
+# Keys & Service Accounts
+keys/
 android/key.jks
 android/key.properties
-ios/GoogleService-Info.plist
-ios/fastlane/3Z55GTHMWY.p8
-macos/GoogleService-Info.plist
-macos/fastlane/3Z55GTHMWY.p8
+
+# Firebase
+android/firebase_app_id_file.json
+android/app/google-services.json
+ios/firebase_app_id_file.json
+ios/Runner/GoogleService-Info.plist
+macos/firebase_app_id_file.json
+macos/Runner/GoogleService-Info.plist
+
+# Node Dependency directories
+node_modules/
+jspm_packages/
+
+# Artifacts
+output/
+*.apk
+*.aab
+*.ipa
+*.dmg
+*.pkg
+
+# Linux Artifacts
+debian/DEBIAN/md5sums
+debian/usr/share/lunasea
+*.snap

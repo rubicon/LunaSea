@@ -1,28 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/dashboard.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/database/tables/dashboard.dart';
 
-class SettingsConfigurationDashboardDefaultPagesRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationDashboardDefaultPagesRouter()
-      : super('/settings/configuration/dashboard/pages');
+import 'package:lunasea/modules/dashboard/core/dialogs.dart';
+import 'package:lunasea/modules/dashboard/routes/dashboard/widgets/navigation_bar.dart';
+
+class ConfigurationDashboardDefaultPagesRoute extends StatefulWidget {
+  const ConfigurationDashboardDefaultPagesRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationDashboardDefaultPagesRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationDashboardDefaultPagesRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -51,18 +44,15 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _homePage() {
-    DashboardDatabaseValue _db = DashboardDatabaseValue.NAVIGATION_INDEX;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
+    const _db = DashboardDatabase.NAVIGATION_INDEX;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
         title: 'lunasea.Home'.tr(),
-        body: [TextSpan(text: DashboardNavigationBar.titles[_db.data])],
-        trailing: LunaIconButton(icon: DashboardNavigationBar.icons[_db.data]),
+        body: [TextSpan(text: HomeNavigationBar.titles[_db.read()])],
+        trailing: LunaIconButton(icon: HomeNavigationBar.icons[_db.read()]),
         onTap: () async {
-          Tuple2<bool, int> values =
-              await DashboardDialogs().defaultPage(context);
-          if (values.item1) {
-            DashboardDatabaseValue.NAVIGATION_INDEX.put(values.item2);
-          }
+          final values = await DashboardDialogs().defaultPage(context);
+          if (values.item1) _db.update(values.item2);
         },
       ),
     );

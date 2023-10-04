@@ -1,9 +1,11 @@
-import 'dart:async';
-
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrSeriesDetailsSeasonTile extends StatefulWidget {
   final SonarrSeriesSeason season;
@@ -26,10 +28,7 @@ class _State extends State<SonarrSeriesDetailsSeasonTile> {
   Widget build(BuildContext context) {
     return LunaBlock(
       posterPlaceholderIcon: LunaIcons.VIDEO_CAM,
-      posterUrl: widget.season.images
-              ?.firstWhereOrNull((e) => e.coverType == 'poster')
-              ?.url ??
-          '',
+      posterUrl: _posterUrl(),
       posterHeaders: context.read<SonarrState>().headers,
       title: widget.season.lunaTitle,
       disabled: !widget.season.monitored!,
@@ -44,11 +43,18 @@ class _State extends State<SonarrSeriesDetailsSeasonTile> {
     );
   }
 
-  Future<void> _onTap() async => SonarrSeasonDetailsRouter().navigateTo(
-        context,
-        widget.seriesId ?? -1,
-        widget.season.seasonNumber ?? -1,
-      );
+  String _posterUrl() {
+    final images = widget.season.images;
+    final poster = images?.firstWhereOrNull((e) => e.coverType == 'poster');
+    return poster?.remoteUrl ?? poster?.url ?? '';
+  }
+
+  Future<void> _onTap() async {
+    SonarrRoutes.SERIES_SEASON.go(params: {
+      'series': (widget.seriesId ?? -1).toString(),
+      'season': (widget.season.seasonNumber ?? -1).toString(),
+    });
+  }
 
   Future<void> _onLongPress() async {
     Tuple2<bool, SonarrSeasonSettingsType?> result = await SonarrDialogs()
@@ -63,10 +69,9 @@ class _State extends State<SonarrSeriesDetailsSeasonTile> {
 
   TextSpan _subtitle1() {
     return TextSpan(
-      text: widget.season.statistics?.previousAiring?.lunaDateTimeReadable(
-            timeOnNewLine: false,
+      text: widget.season.statistics?.previousAiring?.asDateTime(
             showSeconds: false,
-            sameLineDelimiter: '@',
+            delimiter: '@'.pad(),
           ) ??
           LunaUI.TEXT_EMDASH,
     );
@@ -74,8 +79,7 @@ class _State extends State<SonarrSeriesDetailsSeasonTile> {
 
   TextSpan _subtitle2() {
     return TextSpan(
-      text: widget.season.statistics?.sizeOnDisk
-              ?.lunaBytesToString(decimals: 1) ??
+      text: widget.season.statistics?.sizeOnDisk?.asBytes(decimals: 1) ??
           LunaUI.TEXT_EMDASH,
     );
   }

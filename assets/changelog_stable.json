@@ -1,0 +1,31 @@
+{
+  "motd": "Welcome to LunaSea v10.2.6!\n\nThis update fixes some small issues with Sonarr, including correctly sorting the missing content list in descending order and support for season posters when using Sonarr v4.",
+  "fix": {
+    "sonarr": [
+      {
+        "commit": "ea0fe19efc0c0c8f1582c4a0507fb3d929ba561f",
+        "message": "correctly sort missing content list in descending order"
+      },
+      {
+        "commit": "08228ef0f93cb3c298a8677019535ad7ec0c7a54",
+        "message": "correctly support Sonarr v4 season posters"
+      }
+    ],
+    "localization": [
+      {
+        "commit": "642af124043842c656fcded10a2f9d3ccbe9dde3",
+        "message": "translations update from Hosted Weblate"
+      }
+    ],
+    "flutter": [
+      {
+        "commit": "8bd3368e99f52f3a8d40e26cf690f2f618cef4bc",
+        "message": "upgrade packages"
+      },
+      {
+        "commit": "3da56b01945442f5b78db097c74407295d8ed49f",
+        "message": "upgrade to 3.13.6/a794cf2681"
+      }
+    ]
+  }
+}

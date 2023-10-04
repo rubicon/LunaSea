@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/settings.dart';
 
-class SettingsConfigurationDrawerRouter extends SettingsPageRouter {
-  SettingsConfigurationDrawerRouter() : super('/settings/configuration/drawer');
-
-  @override
-  Widget widget() => _Widget();
+class ConfigurationDrawerRoute extends StatefulWidget {
+  const ConfigurationDrawerRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationDrawerRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationDrawerRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<LunaModule>? _modules;
 
@@ -54,10 +46,10 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
           body: [
             TextSpan(text: 'settings.AutomaticallyManageOrderDescription'.tr()),
           ],
-          trailing: LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.listen(
-            builder: (context, _, __) => LunaSwitch(
-              value: LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.data,
-              onChanged: LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.put,
+          trailing: LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.listenableBuilder(
+            builder: (context, _) => LunaSwitch(
+              value: LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.read(),
+              onChanged: LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.update,
             ),
           ),
         ),
@@ -75,7 +67,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
               LunaModule module = _modules![oIndex];
               _modules!.remove(module);
               _modules!.insert(nIndex, module);
-              LunaDatabaseValue.DRAWER_MANUAL_ORDER.put(_modules);
+              LunaSeaDatabase.DRAWER_MANUAL_ORDER.update(_modules!);
             },
           ),
         ),
@@ -84,14 +76,14 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _reorderableModuleTile(int index) {
-    return LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.listen(
+    return LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.listenableBuilder(
       key: ObjectKey(_modules![index]),
-      builder: (context, _, __) => LunaBlock(
-        disabled: LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.data,
-        title: _modules![index].name,
+      builder: (context, _) => LunaBlock(
+        disabled: LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.read(),
+        title: _modules![index].title,
         body: [TextSpan(text: _modules![index].description)],
         leading: LunaIconButton(icon: _modules![index].icon),
-        trailing: LunaDatabaseValue.DRAWER_AUTOMATIC_MANAGE.data
+        trailing: LunaSeaDatabase.DRAWER_AUTOMATIC_MANAGE.read()
             ? null
             : LunaReorderableListViewDragger(index: index),
       ),

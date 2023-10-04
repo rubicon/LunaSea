@@ -1,4 +1,6 @@
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/duration.dart';
+import 'package:lunasea/extensions/string/string.dart';
 
 class NZBGetQueueData {
   int id;
@@ -40,9 +42,9 @@ class NZBGetQueueData {
   }
 
   String get timestamp {
-    return (queueSeconds + remainingTime).lunaTimestamp() == '0:00:00'
+    return (queueSeconds + remainingTime).asTrackDuration() == '00:00'
         ? '―'
-        : (queueSeconds + remainingTime).lunaTimestamp();
+        : (queueSeconds + remainingTime).asTrackDuration();
   }
 
   String get statusString {
@@ -70,6 +72,7 @@ class NZBGetQueueData {
 
   String get subtitle {
     String size = '$downloaded/$sizeTotal MB';
-    return '$statusString\t•\t$size\t•\t$percentageDone%\t•\t$formattedCategory';
+    String paddedBullet = LunaUI.TEXT_BULLET.pad();
+    return '$statusString$paddedBullet$size$paddedBullet$percentageDone%$paddedBullet$formattedCategory';
   }
 }

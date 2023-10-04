@@ -2,31 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
 
-class TautulliHomeRouter extends TautulliPageRouter {
-  TautulliHomeRouter() : super('/tautulli');
+class TautulliRoute extends StatefulWidget {
+  const TautulliRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router, homeRoute: true);
+  State<TautulliRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+class _State extends State<TautulliRoute> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   PageController? _pageController;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-        initialPage: TautulliDatabaseValue.NAVIGATION_INDEX.data);
+    _pageController =
+        PageController(initialPage: TautulliDatabase.NAVIGATION_INDEX.read());
   }
 
   @override
@@ -35,7 +28,7 @@ class _State extends State<_Widget> {
       scaffoldKey: _scaffoldKey,
       module: LunaModule.TAUTULLI,
       drawer: _drawer(),
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       bottomNavigationBar: _bottomNavigationBar(),
       body: _body(),
     );
@@ -44,25 +37,24 @@ class _State extends State<_Widget> {
   Widget _drawer() => LunaDrawer(page: LunaModule.TAUTULLI.key);
 
   Widget? _bottomNavigationBar() {
-    if (context.read<TautulliState>().enabled!)
+    if (context.read<TautulliState>().enabled)
       return TautulliNavigationBar(pageController: _pageController);
     return null;
   }
 
-  Widget _appBar() {
-    List<String> profiles =
-        Database.profiles.box.keys.fold([], (value, element) {
-      if (Database.profiles.box.get(element)?.tautulliEnabled ?? false)
+  PreferredSizeWidget _appBar() {
+    List<String> profiles = LunaBox.profiles.keys.fold([], (value, element) {
+      if (LunaBox.profiles.read(element)?.tautulliEnabled ?? false)
         value.add(element);
       return value;
     });
     List<Widget>? actions;
-    if (context.watch<TautulliState>().enabled!)
+    if (context.watch<TautulliState>().enabled)
       actions = [
         const TautulliAppBarGlobalSettingsAction(),
       ];
     return LunaAppBar.dropdown(
-      title: LunaModule.TAUTULLI.name,
+      title: LunaModule.TAUTULLI.title,
       useDrawer: true,
       profiles: profiles,
       actions: actions,

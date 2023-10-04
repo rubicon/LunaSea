@@ -1,73 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/models/indexer.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationSearchEditRouter extends SettingsPageRouter {
-  SettingsConfigurationSearchEditRouter()
-      : super('/settings/configuration/search/edit/:indexerid');
+class ConfigurationSearchEditIndexerRoute extends StatefulWidget {
+  final int id;
 
-  @override
-  _Widget widget([int indexerId = -1]) => _Widget(indexerId: indexerId);
-
-  @override
-  Future<void> navigateTo(BuildContext context, [int indexerId = -1]) async {
-    LunaRouter.router.navigateTo(context, route(indexerId));
-  }
-
-  @override
-  String route([int indexerId = -1]) {
-    return super.fullRoute.replaceFirst(':indexerid', indexerId.toString());
-  }
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.withParameterRouteDefinition(
-      router,
-      (context, params) {
-        int indexerId = (params['indexerid']?.isNotEmpty ?? false)
-            ? (int.tryParse(params['indexerid']![0]) ?? -1)
-            : -1;
-        return _Widget(indexerId: indexerId);
-      },
-    );
-  }
-}
-
-class _Widget extends StatefulWidget {
-  final int indexerId;
-
-  const _Widget({
+  const ConfigurationSearchEditIndexerRoute({
     Key? key,
-    required this.indexerId,
+    required this.id,
   }) : super(key: key);
 
   @override
-  State<_Widget> createState() => _State();
+  State<ConfigurationSearchEditIndexerRoute> createState() => _State();
 }
 
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSearchEditIndexerRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  IndexerHiveObject? _indexer;
+  LunaIndexer? _indexer;
 
   @override
   Widget build(BuildContext context) {
-    if (widget.indexerId < 0)
-      return LunaInvalidRoute(
-          title: 'Edit Indexer', message: 'Indexer Not Found');
-    if (!Database.indexers.box.containsKey(widget.indexerId))
-      return LunaInvalidRoute(
-          title: 'Edit Indexer', message: 'Indexer Not Found');
+    if (widget.id < 0 || !LunaBox.indexers.contains(widget.id)) {
+      return InvalidRoutePage(
+        title: 'search.EditIndexer'.tr(),
+        message: 'search.IndexerNotFound'.tr(),
+      );
+    }
+
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
       bottomNavigationBar: _bottomActionBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'Edit Indexer',
+      title: 'search.EditIndexer'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -76,14 +50,16 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaBottomActionBar(
       actions: [
         LunaButton.text(
-          text: 'Delete Indexer',
+          text: 'search.DeleteIndexer'.tr(),
           icon: Icons.delete_rounded,
           color: LunaColours.red,
           onTap: () async {
             bool result = await SettingsDialogs().deleteIndexer(context);
             if (result) {
               showLunaSuccessSnackBar(
-                  title: 'Indexer Deleted', message: _indexer!.displayName);
+                title: 'search.IndexerDeleted'.tr(),
+                message: _indexer!.displayName,
+              );
               _indexer!.delete();
               Navigator.of(context).pop();
             }
@@ -94,80 +70,79 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-        valueListenable:
-            Database.indexers.box.listenable(keys: [widget.indexerId]),
-        builder: (context, dynamic box, __) {
-          if (!Database.indexers.box.containsKey(widget.indexerId))
-            return Container();
-          _indexer = Database.indexers.box.get(widget.indexerId);
-          return LunaListView(
-            controller: scrollController,
-            children: [
-              _displayName(),
-              _apiURL(),
-              _apiKey(),
-              _headers(),
-            ],
-          );
-        });
+    return LunaBox.indexers.listenableBuilder(
+      selectKeys: [widget.id],
+      builder: (context, _) {
+        if (!LunaBox.indexers.contains(widget.id)) return Container();
+        _indexer = LunaBox.indexers.read(widget.id);
+        return LunaListView(
+          controller: scrollController,
+          children: [
+            _displayName(),
+            _apiURL(),
+            _apiKey(),
+            _headers(),
+          ],
+        );
+      },
+    );
   }
 
   Widget _displayName() {
+    String _name = _indexer!.displayName;
     return LunaBlock(
-      title: 'Display Name',
-      body: [
-        TextSpan(
-          text: _indexer!.displayName == null || _indexer!.displayName!.isEmpty
-              ? 'Not Set'
-              : _indexer!.displayName,
-        ),
-      ],
+      title: 'settings.DisplayName'.tr(),
+      body: [TextSpan(text: _name.isEmpty ? 'lunasea.NotSet'.tr() : _name)],
       trailing: const LunaIconButton.arrow(),
       onTap: () async {
-        Tuple2<bool, String> values = await LunaDialogs()
-            .editText(context, 'Display Name', prefill: _indexer!.displayName!);
-        if (values.item1) _indexer!.displayName = values.item2;
+        Tuple2<bool, String> values = await LunaDialogs().editText(
+          context,
+          'settings.DisplayName'.tr(),
+          prefill: _indexer!.displayName,
+        );
+        if (values.item1) {
+          _indexer!.displayName = values.item2;
+        }
         _indexer!.save();
       },
     );
   }
 
   Widget _apiURL() {
+    String _host = _indexer!.host;
     return LunaBlock(
-      title: 'Indexer API Host',
-      body: [
-        TextSpan(
-          text: _indexer!.host == null || _indexer!.host!.isEmpty
-              ? 'Not Set'
-              : _indexer!.host,
-        ),
-      ],
+      title: 'search.IndexerAPIHost'.tr(),
+      body: [TextSpan(text: _host.isEmpty ? 'lunasea.NotSet'.tr() : _host)],
       trailing: const LunaIconButton.arrow(),
       onTap: () async {
-        Tuple2<bool, String> values = await LunaDialogs()
-            .editText(context, 'Indexer API Host', prefill: _indexer!.host!);
-        if (values.item1) _indexer!.host = values.item2;
+        Tuple2<bool, String> values = await LunaDialogs().editText(
+          context,
+          'search.IndexerAPIHost'.tr(),
+          prefill: _host,
+        );
+        if (values.item1 && mounted) {
+          _indexer!.host = values.item2;
+        }
         _indexer!.save();
       },
     );
   }
 
   Widget _apiKey() {
+    String _key = _indexer!.apiKey;
     return LunaBlock(
-      title: 'Indexer API Key',
-      body: [
-        TextSpan(
-          text: _indexer!.apiKey == null || _indexer!.apiKey!.isEmpty
-              ? 'Not Set'
-              : _indexer!.apiKey,
-        ),
-      ],
+      title: 'search.IndexerAPIKey'.tr(),
+      body: [TextSpan(text: _key.isEmpty ? 'lunasea.NotSet'.tr() : _key)],
       trailing: const LunaIconButton.arrow(),
       onTap: () async {
-        Tuple2<bool, String> values = await LunaDialogs()
-            .editText(context, 'Indexer API Key', prefill: _indexer!.apiKey!);
-        if (values.item1) _indexer!.apiKey = values.item2;
+        Tuple2<bool, String> values = await LunaDialogs().editText(
+          context,
+          'search.IndexerAPIKey'.tr(),
+          prefill: _key,
+        );
+        if (values.item1) {
+          _indexer!.apiKey = values.item2;
+        }
         _indexer!.save();
       },
     );
@@ -178,8 +153,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationSearchEditHeadersRouter()
-          .navigateTo(context, widget.indexerId),
+      onTap: () => SettingsRoutes.CONFIGURATION_SEARCH_EDIT_INDEXER_HEADERS.go(
+        params: {
+          'id': widget.id.toString(),
+        },
+      ),
     );
   }
 }

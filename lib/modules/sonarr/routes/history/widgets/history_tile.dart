@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 enum SonarrHistoryTileType {
   ALL,
@@ -106,17 +109,20 @@ class SonarrHistoryTile extends StatelessWidget {
   Future<void> _onLongPress(BuildContext context) async {
     switch (type) {
       case SonarrHistoryTileType.ALL:
-        return SonarrSeriesDetailsRouter().navigateTo(
-          context,
-          history.series?.id ?? series?.id ?? -1,
-        );
+        final id = history.series?.id ?? series?.id ?? -1;
+        return SonarrRoutes.SERIES.go(params: {
+          'series': id.toString(),
+        });
       case SonarrHistoryTileType.SERIES:
         if (_hasEpisodeInfo()) {
-          return SonarrSeasonDetailsRouter().navigateTo(
-            context,
-            history.seriesId ?? history.series?.id ?? series!.id ?? -1,
-            history.episode?.seasonNumber ?? episode?.seasonNumber ?? -1,
-          );
+          final seriesId =
+              history.seriesId ?? history.series?.id ?? series!.id ?? -1;
+          final seasonNum =
+              history.episode?.seasonNumber ?? episode?.seasonNumber ?? -1;
+          return SonarrRoutes.SERIES_SEASON.go(params: {
+            'series': seriesId.toString(),
+            'season': seasonNum.toString(),
+          });
         }
         break;
       default:
@@ -144,9 +150,9 @@ class SonarrHistoryTile extends StatelessWidget {
   TextSpan _subtitle2() {
     return TextSpan(
       text: [
-        history.date?.lunaAge ?? LunaUI.TEXT_EMDASH,
-        history.date?.lunaDateTimeReadable() ?? LunaUI.TEXT_EMDASH,
-      ].join(LunaUI.TEXT_BULLET.lunaPad()),
+        history.date?.asAge() ?? LunaUI.TEXT_EMDASH,
+        history.date?.asDateTime() ?? LunaUI.TEXT_EMDASH,
+      ].join(LunaUI.TEXT_BULLET.pad()),
     );
   }
 

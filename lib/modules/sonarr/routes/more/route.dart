@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrMoreRoute extends StatefulWidget {
   const SonarrMoreRoute({
@@ -23,7 +24,6 @@ class _State extends State<SonarrMoreRoute> with AutomaticKeepAliveClientMixin {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       module: LunaModule.SONARR,
-      hideDrawer: true,
       body: _body(),
     );
   }
@@ -47,7 +47,7 @@ class _State extends State<SonarrMoreRoute> with AutomaticKeepAliveClientMixin {
             icon: Icons.history_rounded,
             color: LunaColours().byListIndex(0),
           ),
-          onTap: () async => SonarrHistoryRouter().navigateTo(context),
+          onTap: SonarrRoutes.HISTORY.go,
         ),
         // LunaBlock(
         //   title: 'sonarr.ManualImport'.tr(),
@@ -65,7 +65,7 @@ class _State extends State<SonarrMoreRoute> with AutomaticKeepAliveClientMixin {
             icon: Icons.queue_play_next_rounded,
             color: LunaColours().byListIndex(1),
           ),
-          onTap: () async => SonarrQueueRouter().navigateTo(context),
+          onTap: SonarrRoutes.QUEUE.go,
         ),
         // LunaBlock(
         //   title: 'sonarr.SystemStatus'.tr(),
@@ -83,7 +83,7 @@ class _State extends State<SonarrMoreRoute> with AutomaticKeepAliveClientMixin {
             icon: Icons.style_rounded,
             color: LunaColours().byListIndex(2),
           ),
-          onTap: () async => SonarrTagsRouter().navigateTo(context),
+          onTap: SonarrRoutes.TAGS.go,
         ),
       ],
     );

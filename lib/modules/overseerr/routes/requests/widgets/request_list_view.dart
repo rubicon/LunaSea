@@ -24,21 +24,16 @@ class _State extends State<OverseerrRequestsListView> {
   }
 
   Future<void> _fetchPage(int pageKey) async {
-    final int pageSize = OverseerrDatabaseValue.CONTENT_PAGE_SIZE.data;
+    final int pageSize = OverseerrDatabase.CONTENT_PAGE_SIZE.read();
     await context
         .read<OverseerrState>()
         .api
-        ?.requests
-        .getRequests(
-          take: OverseerrDatabaseValue.CONTENT_PAGE_SIZE.data,
+        ?.getRequests(
+          take: OverseerrDatabase.CONTENT_PAGE_SIZE.read(),
           skip: pageKey * pageSize,
         )
-        .then((data) {
-      if ((data.results?.length ?? 0) < pageSize) {
-        return _pagingController.appendLastPage(data.results ?? []);
-      }
-      return _pagingController.appendPage(data.results ?? [], pageKey + 1);
-    }).catchError((error, stack) {
+        .then((data) => _processPage(data, pageKey, pageSize))
+        .catchError((error, stack) {
       LunaLogger().error(
         'Unable to fetch Overseerr requests page / take: $pageSize / skip: ${pageKey * pageSize}',
         error,
@@ -46,6 +41,14 @@ class _State extends State<OverseerrRequestsListView> {
       );
       _pagingController.error = error;
     });
+  }
+
+  void _processPage(OverseerrRequestPage page, int key, int size) {
+    List<OverseerrRequest> _requests = page.results ?? [];
+    if (_requests.length < size) {
+      return _pagingController.appendLastPage(_requests);
+    }
+    return _pagingController.appendPage(_requests, key + 1);
   }
 
   @override
@@ -56,7 +59,8 @@ class _State extends State<OverseerrRequestsListView> {
       scrollController: OverseerrNavigationBar.scrollControllers[0],
       listener: _fetchPage,
       noItemsFoundMessage: 'overseerr.NoRequestsFound'.tr(),
-      itemBuilder: (context, request, index) => OverseerrRequestTile(
+      // itemExtent: LunaBlock.calculateItemExtent(3),
+      itemBuilder: (context, request, _) => OverseerrRequestTile(
         request: request,
       ),
     );

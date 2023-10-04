@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliRecentlyAddedContentTile extends StatefulWidget {
   final TautulliRecentlyAdded recentlyAdded;
@@ -72,7 +75,7 @@ class _State extends State<TautulliRecentlyAddedContentTile> {
         TextSpan(
           children: [
             TextSpan(text: 'S${widget.recentlyAdded.parentMediaIndex}'),
-            TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+            TextSpan(text: LunaUI.TEXT_BULLET.pad()),
             TextSpan(text: 'E${widget.recentlyAdded.mediaIndex}: '),
             TextSpan(
               text: widget.recentlyAdded.title,
@@ -98,7 +101,7 @@ class _State extends State<TautulliRecentlyAddedContentTile> {
         TextSpan(
           children: [
             TextSpan(text: widget.recentlyAdded.title),
-            TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+            TextSpan(text: LunaUI.TEXT_BULLET.pad()),
             TextSpan(text: widget.recentlyAdded.parentTitle),
           ],
         ),
@@ -109,14 +112,15 @@ class _State extends State<TautulliRecentlyAddedContentTile> {
         const TextSpan(text: LunaUI.TEXT_EMDASH),
       TextSpan(text: widget.recentlyAdded.libraryName),
       TextSpan(
-        text: widget.recentlyAdded.addedAt?.lunaAge ?? 'lunasea.Unknown'.tr(),
+        text: widget.recentlyAdded.addedAt?.asAge() ?? 'lunasea.Unknown'.tr(),
       ),
     ];
   }
 
-  Future<void> _onTap() async => TautulliMediaDetailsRouter().navigateTo(
-        context,
-        widget.recentlyAdded.ratingKey!,
-        widget.recentlyAdded.mediaType!,
-      );
+  void _onTap() {
+    TautulliRoutes.MEDIA_DETAILS.go(params: {
+      'rating_key': widget.recentlyAdded.ratingKey.toString(),
+      'media_type': widget.recentlyAdded.mediaType!.value,
+    });
+  }
 }

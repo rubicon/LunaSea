@@ -1,39 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationSonarrRouter extends SettingsPageRouter {
-  SettingsConfigurationSonarrRouter() : super('/settings/configuration/sonarr');
+class ConfigurationSonarrRoute extends StatefulWidget {
+  const ConfigurationSonarrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ConfigurationSonarrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSonarrRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'Sonarr',
+      title: LunaModule.SONARR.title,
       scrollControllers: [scrollController],
     );
   }
@@ -54,12 +48,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _enabledToggle() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic _, __) => LunaBlock(
-        title: 'Enable ${LunaModule.SONARR.name}',
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'settings.EnableModule'.tr(args: [LunaModule.SONARR.title]),
         trailing: LunaSwitch(
-          value: LunaProfile.current.sonarrEnabled ?? false,
+          value: LunaProfile.current.sonarrEnabled,
           onChanged: (value) {
             LunaProfile.current.sonarrEnabled = value;
             LunaProfile.current.save();
@@ -76,13 +69,12 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       body: [
         TextSpan(
           text: 'settings.ConnectionDetailsDescription'.tr(
-            args: [LunaModule.SONARR.name],
+            args: [LunaModule.SONARR.title],
           ),
         )
       ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationSonarrConnectionDetailsRouter()
-          .navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_SONARR_CONNECTION_DETAILS.go,
     );
   }
 
@@ -91,8 +83,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.DefaultPages'.tr(),
       body: [TextSpan(text: 'settings.DefaultPagesDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationSonarrDefaultPagesRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_SONARR_DEFAULT_PAGES.go,
     );
   }
 
@@ -103,22 +94,27 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
         TextSpan(text: 'settings.DefaultOptionsDescription'.tr()),
       ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationSonarrDefaultOptionsRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_SONARR_DEFAULT_OPTIONS.go,
     );
   }
 
   Widget _queueSize() {
-    SonarrDatabaseValue _db = SonarrDatabaseValue.QUEUE_PAGE_SIZE;
-    return _db.listen(
-      builder: (context, _, __) => LunaBlock(
-        title: 'Queue Size',
-        body: [TextSpan(text: _db.data == 1 ? '1 Item' : '${_db.data} Items')],
+    const _db = SonarrDatabase.QUEUE_PAGE_SIZE;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'sonarr.QueueSize'.tr(),
+        body: [
+          TextSpan(
+            text: _db.read() == 1
+                ? 'lunasea.OneItem'.tr()
+                : 'lunasea.Items'.tr(args: [_db.read().toString()]),
+          ),
+        ],
         trailing: const LunaIconButton(icon: Icons.queue_play_next_rounded),
         onTap: () async {
           Tuple2<bool, int> result =
               await SonarrDialogs().setQueuePageSize(context);
-          if (result.item1) _db.put(result.item2);
+          if (result.item1) _db.update(result.item2);
         },
       ),
     );

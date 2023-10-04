@@ -2,25 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
 
-class RadarrHomeRouter extends RadarrPageRouter {
-  RadarrHomeRouter() : super('/radarr');
+class RadarrRoute extends StatefulWidget {
+  const RadarrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) => super.noParameterRouteDefinition(
-        router,
-        homeRoute: true,
-      );
+  State<RadarrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> {
+class _State extends State<RadarrRoute> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
 
@@ -28,7 +19,7 @@ class _State extends State<_Widget> {
   void initState() {
     super.initState();
     _pageController = LunaPageController(
-      initialPage: RadarrDatabaseValue.NAVIGATION_INDEX.data,
+      initialPage: RadarrDatabase.NAVIGATION_INDEX.read(),
     );
   }
 
@@ -56,10 +47,10 @@ class _State extends State<_Widget> {
   }
 
   Widget _appBar() {
-    List<String> profiles = Database.profiles.box.keys.fold(
+    List<String> profiles = LunaBox.profiles.keys.fold(
       [],
       (value, element) {
-        if (Database.profiles.box.get(element)?.radarrEnabled ?? false) {
+        if (LunaBox.profiles.read(element)?.radarrEnabled ?? false) {
           value.add(element);
         }
         return value;
@@ -73,7 +64,7 @@ class _State extends State<_Widget> {
       ];
     }
     return LunaAppBar.dropdown(
-      title: LunaModule.RADARR.name,
+      title: LunaModule.RADARR.title,
       useDrawer: true,
       profiles: profiles,
       actions: actions,

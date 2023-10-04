@@ -2,24 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/search.dart';
 
-class SearchHomeRouter extends SearchPageRouter {
-  SearchHomeRouter() : super('/search');
+class SearchRoute extends StatefulWidget {
+  const SearchRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<SearchRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<SearchRoute> with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -35,7 +27,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   Widget _appBar() {
     return LunaAppBar(
       useDrawer: true,
-      title: LunaModule.SEARCH.name,
+      title: LunaModule.SEARCH.title,
       scrollControllers: [scrollController],
     );
   }
@@ -43,30 +35,26 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   Widget _drawer() => LunaDrawer(page: LunaModule.SEARCH.key);
 
   Widget _body() {
-    if (Database.indexers.box.isEmpty) {
+    if (LunaBox.indexers.isEmpty) {
       return LunaMessage.moduleNotEnabled(
         context: context,
-        module: LunaModule.SEARCH.name,
+        module: LunaModule.SEARCH.title,
       );
     }
     return LunaListView(
       controller: scrollController,
-      children: _list as List<Widget>,
+      children: _list,
     );
   }
 
-  List get _list {
-    List<SearchIndexerTile> list = List.generate(
-      Database.indexers.box.length,
-      (index) => SearchIndexerTile(
-        indexer: Database.indexers.box.getAt(index),
-      ),
-    );
-    list.sort(
-      (a, b) => a.indexer!.displayName!
-          .toLowerCase()
-          .compareTo(b.indexer!.displayName!.toLowerCase()),
-    );
+  List<Widget> get _list {
+    final list = LunaBox.indexers.data
+        .map((indexer) => SearchIndexerTile(indexer: indexer))
+        .toList();
+    list.sort((a, b) => a.indexer!.displayName
+        .toLowerCase()
+        .compareTo(b.indexer!.displayName.toLowerCase()));
+
     return list;
   }
 }

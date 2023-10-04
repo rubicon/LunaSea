@@ -1,40 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/models/indexer.dart';
 import 'package:lunasea/modules/search/core.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationSearchRouter extends SettingsPageRouter {
-  SettingsConfigurationSearchRouter() : super('/settings/configuration/search');
+class ConfigurationSearchRoute extends StatefulWidget {
+  const ConfigurationSearchRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ConfigurationSearchRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSearchRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
       bottomNavigationBar: _bottomNavigationBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'Search',
+      title: 'search.Search'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -43,19 +38,17 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaBottomActionBar(
       actions: [
         LunaButton.text(
-          text: 'Add Indexer',
+          text: 'search.AddIndexer'.tr(),
           icon: Icons.add_rounded,
-          onTap: () async =>
-              SettingsConfigurationSearchAddRouter().navigateTo(context),
+          onTap: SettingsRoutes.CONFIGURATION_SEARCH_ADD_INDEXER.go,
         ),
       ],
     );
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.indexers.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.indexers.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           LunaModule.SEARCH.informationBanner(),
@@ -66,16 +59,17 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     );
   }
 
-  List<Widget> _indexerSection() => [
-        if (Database.indexers.box.isEmpty)
-          const LunaMessage(text: 'No Indexers Found'),
-        ..._indexers,
-      ];
+  List<Widget> _indexerSection() {
+    if (LunaBox.indexers.isEmpty) {
+      return [LunaMessage(text: 'search.NoIndexersFound'.tr())];
+    }
+    return _indexers;
+  }
 
   List<Widget> get _indexers {
-    List<IndexerHiveObject> indexers = Database.indexers.box.values.toList();
+    List<LunaIndexer> indexers = LunaBox.indexers.data.toList();
     indexers.sort((a, b) =>
-        a.displayName!.toLowerCase().compareTo(b.displayName!.toLowerCase()));
+        a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
     List<LunaBlock> list = List.generate(
       indexers.length,
       (index) =>
@@ -84,14 +78,15 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return list;
   }
 
-  Widget _indexerTile(IndexerHiveObject indexer, int index) {
+  Widget _indexerTile(LunaIndexer indexer, int index) {
     return LunaBlock(
       title: indexer.displayName,
       body: [TextSpan(text: indexer.host)],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationSearchEditRouter().navigateTo(
-        context,
-        index,
+      onTap: () => SettingsRoutes.CONFIGURATION_SEARCH_EDIT_INDEXER.go(
+        params: {
+          'id': index.toString(),
+        },
       ),
     );
   }
@@ -105,28 +100,28 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _hideAdultCategories() {
-    SearchDatabaseValue _db = SearchDatabaseValue.HIDE_XXX;
-    return _db.listen(
-      builder: (context, box, widget) => LunaBlock(
-        title: 'Hide Adult Categories',
-        body: const [TextSpan(text: 'Hide Adult Content')],
+    const _db = SearchDatabase.HIDE_XXX;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'search.HideAdultCategories'.tr(),
+        body: [TextSpan(text: 'search.HideAdultCategoriesDescription'.tr())],
         trailing: LunaSwitch(
-          value: _db.data,
-          onChanged: (value) => _db.put(value),
+          value: _db.read(),
+          onChanged: _db.update,
         ),
       ),
     );
   }
 
   Widget _showLinks() {
-    SearchDatabaseValue _db = SearchDatabaseValue.SHOW_LINKS;
-    return _db.listen(
-      builder: (context, box, widget) => LunaBlock(
-        title: 'Show Links',
-        body: const [TextSpan(text: 'Show Download and Comments Links')],
+    const _db = SearchDatabase.SHOW_LINKS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'search.ShowLinks'.tr(),
+        body: [TextSpan(text: 'search.ShowLinksDescription'.tr())],
         trailing: LunaSwitch(
-          value: _db.data,
-          onChanged: (value) => _db.put(value),
+          value: _db.read(),
+          onChanged: _db.update,
         ),
       ),
     );

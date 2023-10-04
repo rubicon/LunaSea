@@ -1,8 +1,8 @@
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
 import 'package:lunasea/modules/lidarr.dart';
 
 class LidarrCatalogueData {
-  final Map<String, dynamic> api = LunaProfile.current.getLidarr();
   String title;
   String sortTitle;
   String overview;
@@ -70,7 +70,7 @@ class LidarrCatalogueData {
         return dateAdded;
       case LidarrCatalogueSorting.size:
       case LidarrCatalogueSorting.alphabetical:
-        return sizeOnDisk.lunaBytesToString();
+        return sizeOnDisk.asBytes();
     }
   }
 
@@ -120,21 +120,25 @@ class LidarrCatalogueData {
   }
 
   String posterURI() {
-    if (api['enabled']) {
-      String _base = (api['host'] as String).endsWith('/')
-          ? '${api['host']}api/v1/MediaCover/Artist'
-          : '${api['host']}/api/v1/MediaCover/Artist';
-      return '$_base/$artistID/poster-500.jpg?apikey=${api['key']}';
+    final host = LunaProfile.current.lidarrHost;
+    final key = LunaProfile.current.lidarrKey;
+    if (LunaProfile.current.lidarrEnabled) {
+      String _base = host.endsWith('/')
+          ? '${host}api/v1/MediaCover/Artist'
+          : '$host/api/v1/MediaCover/Artist';
+      return '$_base/$artistID/poster-500.jpg?apikey=$key';
     }
     return '';
   }
 
-  String fanartURI() {
-    if (api['enabled']) {
-      String _base = (api['host'] as String).endsWith('/')
-          ? '${api['host']}api/v1/MediaCover/Artist'
-          : '${api['host']}/api/v1/MediaCover/Artist';
-      return '$_base/$artistID/fanart-360.jpg?apikey=${api['key']}';
+  String fanartURI({bool highRes = false}) {
+    final host = LunaProfile.current.lidarrHost;
+    final key = LunaProfile.current.lidarrKey;
+    if (LunaProfile.current.lidarrEnabled) {
+      String _base = host.endsWith('/')
+          ? '${host}api/v1/MediaCover/Artist'
+          : '$host/api/v1/MediaCover/Artist';
+      return '$_base/$artistID/fanart-360.jpg?apikey=$key';
     }
     return '';
   }

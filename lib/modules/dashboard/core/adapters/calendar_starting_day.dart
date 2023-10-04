@@ -1,5 +1,4 @@
-import 'package:lunasea/core.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:lunasea/vendor.dart';
 
 part 'calendar_starting_day.g.dart';
 

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
@@ -12,14 +11,14 @@ class SonarrQueueState extends ChangeNotifier {
   void cancelTimer() => _timer?.cancel();
   void createTimer(BuildContext context) {
     _timer = Timer.periodic(
-      Duration(seconds: SonarrDatabaseValue.QUEUE_REFRESH_RATE.data),
+      Duration(seconds: SonarrDatabase.QUEUE_REFRESH_RATE.read()),
       (_) => fetchQueue(context),
     );
   }
 
-  late Future<SonarrQueue> _queue;
-  Future<SonarrQueue> get queue => _queue;
-  set queue(Future<SonarrQueue> queue) {
+  late Future<SonarrQueuePage> _queue;
+  Future<SonarrQueuePage> get queue => _queue;
+  set queue(Future<SonarrQueuePage> queue) {
     this.queue = queue;
     notifyListeners();
   }
@@ -45,7 +44,7 @@ class SonarrQueueState extends ChangeNotifier {
       _queue = context.read<SonarrState>().api!.queue.get(
             includeEpisode: true,
             includeSeries: true,
-            pageSize: SonarrDatabaseValue.QUEUE_PAGE_SIZE.data,
+            pageSize: SonarrDatabase.QUEUE_PAGE_SIZE.read(),
           );
       createTimer(context);
     }

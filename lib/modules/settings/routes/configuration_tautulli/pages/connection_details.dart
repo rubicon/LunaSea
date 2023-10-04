@@ -2,41 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationTautulliConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationTautulliConnectionDetailsRouter()
-      : super('/settings/configuration/tautulli/connection');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationTautulliConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationTautulliConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ConfigurationTautulliConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationTautulliConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
       bottomNavigationBar: _bottomActionBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -50,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -64,7 +56,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.tautulliHost ?? '';
+    String host = LunaProfile.current.tautulliHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -72,7 +64,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       onTap: () async {
         Tuple2<bool, String> _values = await SettingsDialogs().editHost(
           context,
-          prefill: LunaProfile.current.tautulliHost ?? '',
+          prefill: LunaProfile.current.tautulliHost,
         );
         if (_values.item1) {
           LunaProfile.current.tautulliHost = _values.item2;
@@ -84,7 +76,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _apiKey() {
-    String apiKey = LunaProfile.current.tautulliKey ?? '';
+    String apiKey = LunaProfile.current.tautulliKey;
     return LunaBlock(
       title: 'settings.ApiKey'.tr(),
       body: [
@@ -99,7 +91,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
         Tuple2<bool, String> _values = await LunaDialogs().editText(
           context,
           'settings.ApiKey'.tr(),
-          prefill: LunaProfile.current.tautulliKey ?? '',
+          prefill: LunaProfile.current.tautulliKey,
         );
         if (_values.item1) {
           LunaProfile.current.tautulliKey = _values.item2;
@@ -115,36 +107,38 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       text: 'settings.TestConnection'.tr(),
       icon: LunaIcons.CONNECTION_TEST,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.tautulliHost?.isEmpty ?? true) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.tautulliHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to Tautulli',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.TAUTULLI.title]),
           );
           return;
         }
-        if (_profile.tautulliKey?.isEmpty ?? true) {
+        if (_profile.tautulliKey.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'API Key Required',
-            message: 'API key is required to connect to Tautulli',
+            title: 'settings.ApiKeyRequired'.tr(),
+            message: 'settings.ApiKeyRequiredMessage'
+                .tr(args: [LunaModule.TAUTULLI.title]),
           );
           return;
         }
-        Tautulli(
-                host: _profile.tautulliHost!,
-                apiKey: _profile.tautulliKey!,
-                headers:
-                    Map<String, dynamic>.from(_profile.tautulliHeaders ?? {}))
+        TautulliAPI(
+                host: _profile.tautulliHost,
+                apiKey: _profile.tautulliKey,
+                headers: Map<String, dynamic>.from(_profile.tautulliHeaders))
             .miscellaneous
             .arnold()
             .then((_) => showLunaSuccessSnackBar(
-                  title: 'Connected Successfully',
-                  message: 'Tautulli is ready to use with LunaSea',
+                  title: 'settings.ConnectedSuccessfully'.tr(),
+                  message: 'settings.ConnectedSuccessfullyMessage'
+                      .tr(args: [LunaModule.TAUTULLI.title]),
                 ))
             .catchError((error, trace) {
           LunaLogger().error('Connection Test Failed', error, trace);
           showLunaErrorSnackBar(
-            title: 'Connection Test Failed',
+            title: 'settings.ConnectionTestFailed'.tr(),
             error: error,
           );
         });
@@ -157,8 +151,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationTautulliHeadersRouter().navigateTo(context),
+      onTap:
+          SettingsRoutes.CONFIGURATION_TAUTULLI_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

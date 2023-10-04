@@ -2,27 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationRadarrConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationRadarrConnectionDetailsRouter()
-      : super('/settings/configuration/radarr/connection');
-
-  @override
-  Widget widget() => _Widget();
+class ConfigurationRadarrConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationRadarrConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationRadarrConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationRadarrConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -37,7 +29,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -51,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -65,7 +56,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.radarrHost ?? '';
+    String host = LunaProfile.current.radarrHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -85,7 +76,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _apiKey() {
-    String apiKey = LunaProfile.current.radarrKey ?? '';
+    String apiKey = LunaProfile.current.radarrKey;
     return LunaBlock(
       title: 'settings.ApiKey'.tr(),
       body: [
@@ -116,32 +107,35 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       text: 'settings.TestConnection'.tr(),
       icon: LunaIcons.CONNECTION_TEST,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.radarrHost == null || _profile.radarrHost!.isEmpty) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.radarrHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to Radarr',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.RADARR.title]),
           );
           return;
         }
-        if (_profile.radarrKey == null || _profile.radarrKey!.isEmpty) {
+        if (_profile.radarrKey.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'API Key Required',
-            message: 'API key is required to connect to Radarr',
+            title: 'settings.ApiKeyRequired'.tr(),
+            message: 'settings.ApiKeyRequiredMessage'
+                .tr(args: [LunaModule.RADARR.title]),
           );
           return;
         }
-        Radarr(
-          host: _profile.radarrHost!,
-          apiKey: _profile.radarrKey!,
-          headers: Map<String, dynamic>.from(_profile.radarrHeaders ?? {}),
+        RadarrAPI(
+          host: _profile.radarrHost,
+          apiKey: _profile.radarrKey,
+          headers: Map<String, dynamic>.from(_profile.radarrHeaders),
         )
             .system
             .status()
             .then(
               (_) => showLunaSuccessSnackBar(
-                title: 'Connected Successfully',
-                message: 'Radarr is ready to use with LunaSea',
+                title: 'settings.ConnectedSuccessfully'.tr(),
+                message: 'settings.ConnectedSuccessfullyMessage'
+                    .tr(args: [LunaModule.RADARR.title]),
               ),
             )
             .catchError(
@@ -152,7 +146,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
               trace,
             );
             showLunaErrorSnackBar(
-              title: 'Connection Test Failed',
+              title: 'settings.ConnectionTestFailed'.tr(),
               error: error,
             );
           },
@@ -166,9 +160,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async {
-        SettingsConfigurationRadarrHeadersRouter().navigateTo(context);
-      },
+      onTap: SettingsRoutes.CONFIGURATION_RADARR_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

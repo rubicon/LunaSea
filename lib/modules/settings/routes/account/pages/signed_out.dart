@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/firebase/auth.dart';
+import 'package:lunasea/router/routes/settings.dart';
+import 'package:lunasea/utils/validator.dart';
 
 class SettingsAccountSignedOutPage extends StatefulWidget {
   final ScrollController scrollController;
@@ -11,7 +13,7 @@ class SettingsAccountSignedOutPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _State();
+  _State createState() => _State();
 }
 
 class _State extends State<SettingsAccountSignedOutPage> {
@@ -112,8 +114,7 @@ class _State extends State<SettingsAccountSignedOutPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              onTap: () async =>
-                  SettingsAccountPasswordResetRouter().navigateTo(context),
+              onTap: SettingsRoutes.ACCOUNT_PASSWORD_RESET.go,
             ),
           ),
           padding: const EdgeInsets.symmetric(vertical: 8.0),

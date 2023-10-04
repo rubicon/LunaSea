@@ -1,50 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
 
-class _Args {
-  final SonarrSeries series;
+class AddSeriesDetailsRoute extends StatefulWidget {
+  final SonarrSeries? series;
 
-  _Args({
+  const AddSeriesDetailsRoute({
+    Key? key,
     required this.series,
-  });
-}
+  }) : super(key: key);
 
-class SonarrAddSeriesDetailsRouter extends SonarrPageRouter {
-  SonarrAddSeriesDetailsRouter() : super('/sonarr/addseries/details');
-
-  @override
-  _Widget widget() => _Widget();
-
-  @override
-  Future<void> navigateTo(
-    BuildContext context, [
-    SonarrSeries? series,
-  ]) {
-    assert(series != null);
-    return LunaRouter.router.navigateTo(
-      context,
-      route(),
-      routeSettings: RouteSettings(
-        arguments: _Args(
-          series: series!,
-        ),
-      ),
-    );
-  }
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
-}
-
-class _Widget extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<_Widget>
+class _State extends State<AddSeriesDetailsRoute>
     with LunaLoadCallbackMixin, LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<RefreshIndicatorState> _refreshKey =
@@ -60,17 +31,14 @@ class _State extends State<_Widget>
 
   @override
   Widget build(BuildContext context) {
-    _Args? arguments = ModalRoute.of(context)!.settings.arguments as _Args?;
-    if (arguments == null) {
-      return LunaInvalidRoute(
+    if (widget.series == null) {
+      return InvalidRoutePage(
         title: 'sonarr.AddSeries'.tr(),
         message: 'sonarr.NoSeriesFound'.tr(),
       );
     }
     return ChangeNotifierProvider(
-      create: (_) => SonarrSeriesAddDetailsState(
-        series: arguments.series,
-      ),
+      create: (_) => SonarrSeriesAddDetailsState(series: widget.series!),
       builder: (context, _) => LunaScaffold(
         scaffoldKey: _scaffoldKey,
         appBar: _appBar() as PreferredSizeWidget?,
@@ -156,7 +124,8 @@ class _State extends State<_Widget>
         const SonarrSeriesAddDetailsRootFolderTile(),
         const SonarrSeriesAddDetailsMonitorTile(),
         const SonarrSeriesAddDetailsQualityProfileTile(),
-        const SonarrSeriesAddDetailsLanguageProfileTile(),
+        if (languageProfiles.isNotEmpty)
+          const SonarrSeriesAddDetailsLanguageProfileTile(),
         const SonarrSeriesAddDetailsSeriesTypeTile(),
         const SonarrSeriesAddDetailsUseSeasonFoldersTile(),
         const SonarrSeriesAddDetailsTagsTile(),

@@ -1,0 +1,32 @@
+name: lunasea
+version: 10.2.6
+confinement: strict
+base: core18
+# Required but managed manually via Snapcraft dashboard
+summary: summary
+description: description
+slots:
+  dbus-lunasea:
+    interface: dbus
+    bus: session
+    name: app.lunasea.lunasea
+apps:
+  lunasea:
+    command: lunasea
+    extensions:
+      - flutter-stable
+    plugs:
+      - home
+      - network
+    slots:
+      - dbus-lunasea
+parts:
+  zenity:
+    plugin: nil
+    stage-packages:
+      - zenity
+  lunasea:
+    source: .
+    plugin: flutter
+    flutter-revision: stable
+    flutter-target: lib/main.dart

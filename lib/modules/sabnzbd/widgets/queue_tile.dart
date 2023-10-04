@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sabnzbd.dart';
@@ -61,8 +60,7 @@ class _State extends State<SABnzbdQueueTile> {
           _helper._delete();
           break;
         default:
-          LunaLogger().warning(
-              'SABnzbdQueueTile', '_handlePopup', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 }

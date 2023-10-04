@@ -1,39 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/database.dart';
+import 'package:lunasea/firebase/auth.dart';
+import 'package:lunasea/firebase/core.dart';
 import 'package:lunasea/modules/settings.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:lunasea/modules/settings/routes/system/widgets/backup_tile.dart';
+import 'package:lunasea/modules/settings/routes/system/widgets/build_details.dart';
+import 'package:lunasea/modules/settings/routes/system/widgets/restore_tile.dart';
+import 'package:lunasea/router/routes/settings.dart';
+import 'package:lunasea/system/cache/image/image_cache.dart';
 
-class SettingsSystemRouter extends SettingsPageRouter {
-  SettingsSystemRouter() : super('/settings/system');
+class SystemRoute extends StatefulWidget {
+  const SystemRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<SystemRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<SystemRoute> with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'System',
+      title: 'settings.System'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -42,58 +42,47 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaListView(
       controller: scrollController,
       children: <Widget>[
-        _versionInformation(),
-        _logs(),
+        const BuildDetails(),
         LunaDivider(),
         const SettingsSystemBackupRestoreBackupTile(),
         const SettingsSystemBackupRestoreRestoreTile(),
         LunaDivider(),
+        _logs(),
         _clearImageCache(),
         _clearConfiguration(),
       ],
     );
   }
 
-  Widget _versionInformation() {
-    return FutureBuilder(
-        future: PackageInfo.fromPlatform(),
-        builder: (context, AsyncSnapshot<PackageInfo> snapshot) {
-          String version = 'Loading${LunaUI.TEXT_ELLIPSIS}';
-          if (snapshot.hasError) version = 'Unknown';
-          if (snapshot.hasData)
-            version =
-                '${snapshot.data!.version} (${snapshot.data!.buildNumber})';
-          return LunaBlock(
-            title: 'Version: $version',
-            body: const [TextSpan(text: 'View Recent Changes')],
-            trailing: const LunaIconButton(icon: Icons.system_update_rounded),
-            onTap: () async => LunaChangelogSheet().show(context: context),
-          );
-        });
-  }
-
   Widget _logs() {
     return LunaBlock(
-      title: 'Logs',
-      body: const [TextSpan(text: 'View, Export, and Clear Logs')],
+      title: 'settings.Logs'.tr(),
+      body: [TextSpan(text: 'settings.LogsDescription'.tr())],
       trailing: const LunaIconButton(icon: Icons.developer_mode_rounded),
-      onTap: () async => SettingsSystemLogsRouter().navigateTo(context),
+      onTap: SettingsRoutes.SYSTEM_LOGS.go,
     );
   }
 
   Widget _clearImageCache() {
     return LunaBlock(
-      title: 'Clear Image Cache',
-      body: const [TextSpan(text: 'Clear cached images from the disk')],
+      title: 'settings.ClearImageCache'.tr(),
+      body: [TextSpan(text: 'settings.ClearImageCacheDescription'.tr())],
       trailing: const LunaIconButton(icon: Icons.image_not_supported_rounded),
       onTap: () async {
         bool result = await SettingsDialogs().clearImageCache(context);
         if (result) {
-          LunaImageCache().clear();
-          showLunaSuccessSnackBar(
-            title: 'Image Cache Cleared',
-            message: 'Your image cache has been cleared',
-          );
+          result = await LunaImageCache().clear();
+          if (result) {
+            showLunaSuccessSnackBar(
+              title: 'settings.ImageCacheCleared'.tr(),
+              message: 'settings.ImageCacheClearedDescription'.tr(),
+            );
+          } else {
+            showLunaErrorSnackBar(
+              title: 'settings.FailedToClearImageCache'.tr(),
+              message: 'settings.FailedToClearImageCacheDescription'.tr(),
+            );
+          }
         }
       },
     );
@@ -101,18 +90,18 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _clearConfiguration() {
     return LunaBlock(
-      title: 'Clear Configuration',
-      body: const [TextSpan(text: 'Clean Slate')],
+      title: 'settings.ClearConfiguration'.tr(),
+      body: [TextSpan(text: 'settings.CleanSlate'.tr())],
       trailing: const LunaIconButton(icon: Icons.delete_sweep_rounded),
       onTap: () async {
         bool result = await SettingsDialogs().clearConfiguration(context);
         if (result) {
-          Database().bootstrap();
-          LunaFirebaseAuth().signOut();
+          LunaDatabase().bootstrap();
+          if (LunaFirebase.isSupported) LunaFirebaseAuth().signOut();
           LunaState.reset(context);
           showLunaSuccessSnackBar(
-            title: 'Configuration Cleared',
-            message: 'Your configuration has been cleared',
+            title: 'settings.ConfigurationCleared'.tr(),
+            message: 'settings.ConfigurationClearedDescription'.tr(),
           );
         }
       },

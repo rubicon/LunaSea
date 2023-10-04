@@ -2,50 +2,14 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/modules/radarr/routes/movie_details/sheets/links.dart';
+import 'package:lunasea/router/routes/radarr.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
 
-class RadarrMoviesDetailsRouter extends RadarrPageRouter {
-  RadarrMoviesDetailsRouter() : super('/radarr/movie/:movieid');
-
-  @override
-  Widget widget([
-    int movieId = -1,
-  ]) {
-    return _Widget(movieId: movieId);
-  }
-
-  @override
-  Future<void> navigateTo(
-    BuildContext context, [
-    int movieId = -1,
-  ]) async {
-    LunaRouter.router.navigateTo(context, route(movieId));
-  }
-
-  @override
-  String route([
-    int movieId = -1,
-  ]) {
-    return fullRoute.replaceFirst(':movieid', movieId.toString());
-  }
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.withParameterRouteDefinition(
-      router,
-      (context, params) {
-        int movieId = params['movieid'] == null || params['movieid']!.isEmpty
-            ? -1
-            : (int.tryParse(params['movieid']![0]) ?? -1);
-        return _Widget(movieId: movieId);
-      },
-    );
-  }
-}
-
-class _Widget extends StatefulWidget {
+class MovieDetailsRoute extends StatefulWidget {
   final int movieId;
 
-  const _Widget({
+  const MovieDetailsRoute({
     Key? key,
     required this.movieId,
   }) : super(key: key);
@@ -54,7 +18,7 @@ class _Widget extends StatefulWidget {
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<_Widget> with LunaLoadCallbackMixin {
+class _State extends State<MovieDetailsRoute> with LunaLoadCallbackMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   RadarrMovie? movie;
   PageController? _pageController;
@@ -75,7 +39,7 @@ class _State extends State<_Widget> with LunaLoadCallbackMixin {
   void initState() {
     super.initState();
     _pageController = PageController(
-      initialPage: RadarrDatabaseValue.NAVIGATION_INDEX_MOVIE_DETAILS.data,
+      initialPage: RadarrDatabase.NAVIGATION_INDEX_MOVIE_DETAILS.read(),
     );
   }
 
@@ -99,7 +63,7 @@ class _State extends State<_Widget> with LunaLoadCallbackMixin {
   @override
   Widget build(BuildContext context) {
     if (widget.movieId <= 0)
-      return LunaInvalidRoute(
+      return InvalidRoutePage(
         title: 'Movie Details',
         message: 'Movie Not Found',
       );
@@ -114,17 +78,26 @@ class _State extends State<_Widget> with LunaLoadCallbackMixin {
   }
 
   PreferredSizeWidget _appBar() {
-    List<Widget>? _actions = movie == null
-        ? null
-        : [
-            LunaIconButton(
-              iconSize: LunaUI.ICON_SIZE,
-              icon: Icons.edit_rounded,
-              onPressed: () async =>
-                  RadarrMoviesEditRouter().navigateTo(context, widget.movieId),
-            ),
-            RadarrAppBarMovieSettingsAction(movieId: widget.movieId),
-          ];
+    List<Widget>? _actions;
+
+    if (movie != null) {
+      _actions = [
+        LunaIconButton(
+          icon: LunaIcons.LINK,
+          onPressed: () async {
+            LinksSheet(movie: movie!).show();
+          },
+        ),
+        LunaIconButton(
+          icon: LunaIcons.EDIT,
+          onPressed: () => RadarrRoutes.MOVIE_EDIT.go(params: {
+            'movie': widget.movieId.toString(),
+          }),
+        ),
+        RadarrAppBarMovieSettingsAction(movieId: widget.movieId),
+      ];
+    }
+
     return LunaAppBar(
       pageController: _pageController,
       scrollControllers: RadarrMovieDetailsNavigationBar.scrollControllers,

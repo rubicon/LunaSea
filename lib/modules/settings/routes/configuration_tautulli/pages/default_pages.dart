@@ -1,27 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/modules/tautulli.dart';
 
-class SettingsConfigurationTautulliDefaultPagesRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationTautulliDefaultPagesRouter()
-      : super('/settings/configuration/tautulli/pages');
+class ConfigurationTautulliDefaultPagesRoute extends StatefulWidget {
+  const ConfigurationTautulliDefaultPagesRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ConfigurationTautulliDefaultPagesRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationTautulliDefaultPagesRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -35,7 +26,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Default Pages',
+      title: 'settings.DefaultPages'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -54,108 +45,106 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _homePage() {
-    TautulliDatabaseValue _db = TautulliDatabaseValue.NAVIGATION_INDEX;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
+    const _db = TautulliDatabase.NAVIGATION_INDEX;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
         title: 'lunasea.Home'.tr(),
-        body: [TextSpan(text: TautulliNavigationBar.titles[_db.data])],
-        trailing: LunaIconButton(icon: TautulliNavigationBar.icons[_db.data]),
+        body: [TextSpan(text: TautulliNavigationBar.titles[_db.read()])],
+        trailing: LunaIconButton(icon: TautulliNavigationBar.icons[_db.read()]),
         onTap: () async {
           List values = await TautulliDialogs.setDefaultPage(
             context,
             titles: TautulliNavigationBar.titles,
             icons: TautulliNavigationBar.icons,
           );
-          if (values[0]) _db.put(values[1]);
+          if (values[0]) _db.update(values[1]);
         },
       ),
     );
   }
 
   Widget _graphsPage() {
-    TautulliDatabaseValue _db = TautulliDatabaseValue.NAVIGATION_INDEX_GRAPHS;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
-        title: 'Graphs',
-        body: [TextSpan(text: TautulliGraphsNavigationBar.titles[_db.data])],
+    const _db = TautulliDatabase.NAVIGATION_INDEX_GRAPHS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'tautulli.Graphs'.tr(),
+        body: [TextSpan(text: TautulliGraphsNavigationBar.titles[_db.read()])],
         trailing:
-            LunaIconButton(icon: TautulliGraphsNavigationBar.icons[_db.data]),
+            LunaIconButton(icon: TautulliGraphsNavigationBar.icons[_db.read()]),
         onTap: () async {
           List values = await TautulliDialogs.setDefaultPage(
             context,
             titles: TautulliGraphsNavigationBar.titles,
             icons: TautulliGraphsNavigationBar.icons,
           );
-          if (values[0]) _db.put(values[1]);
+          if (values[0]) _db.update(values[1]);
         },
       ),
     );
   }
 
   Widget _libraryDetailsPage() {
-    TautulliDatabaseValue _db =
-        TautulliDatabaseValue.NAVIGATION_INDEX_LIBRARIES_DETAILS;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
-        title: 'Library Details',
+    const _db = TautulliDatabase.NAVIGATION_INDEX_LIBRARIES_DETAILS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'tautulli.LibraryDetails'.tr(),
         body: [
-          TextSpan(text: TautulliLibrariesDetailsNavigationBar.titles[_db.data])
+          TextSpan(
+              text: TautulliLibrariesDetailsNavigationBar.titles[_db.read()])
         ],
         trailing: LunaIconButton(
-            icon: TautulliLibrariesDetailsNavigationBar.icons[_db.data]),
+            icon: TautulliLibrariesDetailsNavigationBar.icons[_db.read()]),
         onTap: () async {
           List values = await TautulliDialogs.setDefaultPage(
             context,
             titles: TautulliLibrariesDetailsNavigationBar.titles,
             icons: TautulliLibrariesDetailsNavigationBar.icons,
           );
-          if (values[0]) _db.put(values[1]);
+          if (values[0]) _db.update(values[1]);
         },
       ),
     );
   }
 
   Widget _mediaDetailsPage() {
-    TautulliDatabaseValue _db =
-        TautulliDatabaseValue.NAVIGATION_INDEX_MEDIA_DETAILS;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
-        title: 'Media Details',
+    const _db = TautulliDatabase.NAVIGATION_INDEX_MEDIA_DETAILS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'tautulli.MediaDetails'.tr(),
         body: [
-          TextSpan(text: TautulliMediaDetailsNavigationBar.titles[_db.data]),
+          TextSpan(text: TautulliMediaDetailsNavigationBar.titles[_db.read()]),
         ],
         trailing: LunaIconButton(
-            icon: TautulliMediaDetailsNavigationBar.icons[_db.data]),
+            icon: TautulliMediaDetailsNavigationBar.icons[_db.read()]),
         onTap: () async {
           List values = await TautulliDialogs.setDefaultPage(
             context,
             titles: TautulliMediaDetailsNavigationBar.titles,
             icons: TautulliMediaDetailsNavigationBar.icons,
           );
-          if (values[0]) _db.put(values[1]);
+          if (values[0]) _db.update(values[1]);
         },
       ),
     );
   }
 
   Widget _userDetailsPage() {
-    TautulliDatabaseValue _db =
-        TautulliDatabaseValue.NAVIGATION_INDEX_USER_DETAILS;
-    return _db.listen(
-      builder: (context, box, _) => LunaBlock(
-        title: 'User Details',
+    const _db = TautulliDatabase.NAVIGATION_INDEX_USER_DETAILS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'tautulli.UserDetails'.tr(),
         body: [
-          TextSpan(text: TautulliUserDetailsNavigationBar.titles[_db.data]),
+          TextSpan(text: TautulliUserDetailsNavigationBar.titles[_db.read()]),
         ],
         trailing: LunaIconButton(
-            icon: TautulliUserDetailsNavigationBar.icons[_db.data]),
+            icon: TautulliUserDetailsNavigationBar.icons[_db.read()]),
         onTap: () async {
           List values = await TautulliDialogs.setDefaultPage(
             context,
             titles: TautulliUserDetailsNavigationBar.titles,
             icons: TautulliUserDetailsNavigationBar.icons,
           );
-          if (values[0]) _db.put(values[1]);
+          if (values[0]) _db.update(values[1]);
         },
       ),
     );

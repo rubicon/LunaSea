@@ -1,25 +1,17 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/utils/links.dart';
 
-class SettingsResourcesRouter extends SettingsPageRouter {
-  SettingsResourcesRouter() : super('/settings/resources');
+class ResourcesRoute extends StatefulWidget {
+  const ResourcesRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ResourcesRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ResourcesRoute> with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -33,7 +25,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Resources',
+      title: 'settings.Resources'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -43,59 +35,48 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       controller: scrollController,
       children: [
         LunaBlock(
+          title: 'settings.BuildChannels'.tr(),
+          body: [TextSpan(text: 'settings.BuildChannelsDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.BUILD_CHANNELS),
+          onTap: LunaLinkedContent.BUILD_CHANNELS.launch,
+        ),
+        LunaBlock(
+          title: 'settings.Documentation'.tr(),
+          body: [TextSpan(text: 'settings.DocumentationDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.DOCUMENTATION),
+          onTap: LunaLinkedContent.DOCUMENTATION.launch,
+        ),
+        LunaBlock(
+          title: 'settings.Localization'.tr(),
+          body: [TextSpan(text: 'settings.WeblateDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.TRANSLATE),
+          onTap: LunaLinkedContent.WEBLATE.launch,
+        ),
+        LunaDivider(),
+        LunaBlock(
           title: 'Discord',
-          body: const [TextSpan(text: 'Chat & Discussions')],
-          trailing: const LunaIconButton(icon: LunaBrandIcons.discord),
-          onTap: LunaLinks.DISCORD.launch,
-        ),
-        LunaBlock(
-          title: 'Documentation',
-          body: const [TextSpan(text: 'View the Documentation')],
-          trailing: const LunaIconButton(icon: Icons.auto_stories_rounded),
-          onTap: LunaLinks.DOCUMENTATION.launch,
-        ),
-        LunaBlock(
-          title: 'Feedback Board',
-          body: const [TextSpan(text: 'Request New Features')],
-          trailing: const LunaIconButton(icon: Icons.speaker_notes_rounded),
-          onTap: LunaLinks.FEEDBACK_BOARD.launch,
-        ),
-        LunaBlock(
-          title: 'GitHub',
-          body: const [TextSpan(text: 'View the Source Code')],
-          trailing: const LunaIconButton(icon: LunaBrandIcons.github),
-          onTap: LunaLinks.GITHUB.launch,
+          body: [TextSpan(text: 'settings.DiscordDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.DISCORD),
+          onTap: LunaLinkedContent.DISCORD.launch,
         ),
         LunaBlock(
           title: 'Reddit',
-          body: const [TextSpan(text: 'Ask Questions & Get Support')],
-          trailing: const LunaIconButton(icon: LunaBrandIcons.reddit),
-          onTap: LunaLinks.REDDIT.launch,
+          body: [TextSpan(text: 'settings.RedditDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.REDDIT),
+          onTap: LunaLinkedContent.REDDIT.launch,
         ),
-        if (Platform.isIOS)
-          LunaBlock(
-            title: 'TestFlight',
-            body: const [TextSpan(text: 'Join the TestFlight Beta')],
-            trailing: const LunaIconButton(icon: Icons.developer_board_rounded),
-            onTap: LunaLinks.TESTFLIGHT.launch,
-          ),
+        LunaDivider(),
         LunaBlock(
-          title: 'System Status',
-          body: const [TextSpan(text: 'Status Page for Hosted Services')],
-          trailing: const LunaIconButton(icon: Icons.health_and_safety),
-          onTap: LunaLinks.SYSTEM_STATUS.launch,
+          title: 'GitHub',
+          body: [TextSpan(text: 'settings.GitHubDescription'.tr())],
+          trailing: const LunaIconButton(icon: LunaIcons.GITHUB),
+          onTap: LunaLinkedContent.GITHUB.launch,
         ),
         LunaBlock(
-          title: 'Weblate',
-          body: const [TextSpan(text: 'Help Localize LunaSea')],
-          trailing: const LunaIconButton(icon: LunaIcons.TRANSLATE),
-          onTap: LunaLinks.WEBLATE.launch,
-        ),
-        LunaBlock(
-          title: 'Website',
-          body: const [TextSpan(text: 'Visit LunaSea\'s Website')],
+          title: 'settings.Website'.tr(),
+          body: [TextSpan(text: 'settings.WebsiteDescription'.tr())],
           trailing: const LunaIconButton(icon: LunaIcons.HOME),
-          onTap: LunaLinks.WEBSITE.launch,
+          onTap: LunaLinkedContent.WEBSITE.launch,
         ),
       ],
     );

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/lidarr.dart';
-import './abstract.dart';
+import 'package:lunasea/database/models/profile.dart';
+import 'package:lunasea/router/routes/lidarr.dart';
+import 'package:lunasea/widgets/ui.dart';
+import 'package:lunasea/modules/lidarr/core/api/api.dart';
+import 'package:lunasea/modules/dashboard/core/api/data/abstract.dart';
 
 class CalendarLidarrData extends CalendarData {
-  final Map<String, dynamic> api = LunaProfile.current.getLidarr();
   String albumTitle;
   int artistId;
   int totalTrackCount;
@@ -51,14 +52,11 @@ class CalendarLidarrData extends CalendarData {
   }
 
   @override
-  Future<void> enterContent(BuildContext context) async =>
-      Navigator.of(context).pushNamed(
-        LidarrDetailsArtist.ROUTE_NAME,
-        arguments: LidarrDetailsArtistArguments(
-          artistID: artistId,
-          data: null,
-        ),
-      );
+  Future<void> enterContent(BuildContext context) async {
+    LidarrRoutes.ARTIST.go(params: {
+      'artist': artistId.toString(),
+    });
+  }
 
   @override
   Widget trailing(BuildContext context) => LunaIconButton(
@@ -78,30 +76,36 @@ class CalendarLidarrData extends CalendarData {
   }
 
   @override
-  Future<void> trailingOnLongPress(BuildContext context) async =>
-      Navigator.of(context).pushNamed(
-        LidarrSearchResults.ROUTE_NAME,
-        arguments: LidarrSearchResultsArguments(
-          albumID: id,
-          title: albumTitle,
-        ),
-      );
+  Future<void> trailingOnLongPress(BuildContext context) async {
+    LidarrRoutes.ARTIST_ALBUM_RELEASES.go(params: {
+      'artist': artistId.toString(),
+      'album': id.toString(),
+    });
+  }
 
   @override
   String backgroundUrl(BuildContext context) {
-    return api['enabled']
-        ? (api['host'] as String).endsWith('/')
-            ? '${api['host']}api/v1/MediaCover/Artist/$artistId/fanart-360.jpg?apikey=${api['key']}'
-            : '${api['host']}/api/v1/MediaCover/Artist/$artistId/fanart-360.jpg?apikey=${api['key']}'
-        : '';
+    final host = LunaProfile.current.lidarrHost;
+    final key = LunaProfile.current.lidarrKey;
+    if (LunaProfile.current.lidarrEnabled) {
+      String _base = host.endsWith('/')
+          ? '${host}api/v1/MediaCover/Artist'
+          : '$host/api/v1/MediaCover/Artist';
+      return '$_base/$artistId/fanart-360.jpg?apikey=$key';
+    }
+    return '';
   }
 
   @override
   String posterUrl(BuildContext context) {
-    return api['enabled']
-        ? (api['host'] as String).endsWith('/')
-            ? '${api['host']}api/v1/MediaCover/Artist/$artistId/poster-500.jpg?apikey=${api['key']}'
-            : '${api['host']}/api/v1/MediaCover/Artist/$artistId/poster-500.jpg?apikey=${api['key']}'
-        : '';
+    final host = LunaProfile.current.lidarrHost;
+    final key = LunaProfile.current.lidarrKey;
+    if (LunaProfile.current.lidarrEnabled) {
+      String _base = host.endsWith('/')
+          ? '${host}api/v1/MediaCover/Artist'
+          : '$host/api/v1/MediaCover/Artist';
+      return '$_base/$artistId/poster-500.jpg?apikey=$key';
+    }
+    return '';
   }
 }

@@ -3,48 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
 
-class TautulliActivityDetailsRouter extends TautulliPageRouter {
-  TautulliActivityDetailsRouter() : super('/tautulli/activity/:sessionid');
+class ActivityDetailsRoute extends StatefulWidget {
+  final int sessionKey;
 
-  @override
-  _Widget widget([String sessionId = '']) => _Widget(sessionId: sessionId);
-
-  @override
-  Future<void> navigateTo(
-    BuildContext context, [
-    String sessionId = '',
-  ]) async =>
-      LunaRouter.router.navigateTo(context, route(sessionId));
-
-  @override
-  String route([String sessionId = '']) =>
-      fullRoute.replaceFirst(':sessionid', sessionId);
-
-  @override
-  void defineRoute(FluroRouter router) => super.withParameterRouteDefinition(
-        router,
-        (context, params) {
-          String? sessionId = (params['sessionid']?.isNotEmpty ?? false)
-              ? params['sessionid']![0]
-              : null;
-          return _Widget(sessionId: sessionId);
-        },
-      );
-}
-
-class _Widget extends StatefulWidget {
-  final String? sessionId;
-
-  const _Widget({
+  const ActivityDetailsRoute({
     Key? key,
-    required this.sessionId,
+    required this.sessionKey,
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ActivityDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<RefreshIndicatorState> _refreshKey =
       GlobalKey<RefreshIndicatorState>();
@@ -56,12 +28,19 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.sessionKey == -1) {
+      return LunaMessage.goBack(
+        context: context,
+        text: 'tautulli.SessionEnded'.tr(),
+      );
+    }
+
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       appBar: _appBar() as PreferredSizeWidget?,
       body: _body(),
       bottomNavigationBar:
-          TautulliActivityDetailsBottomActionBar(sessionId: widget.sessionId),
+          TautulliActivityDetailsBottomActionBar(sessionKey: widget.sessionKey),
     );
   }
 
@@ -72,8 +51,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
           scrollController
         ],
         actions: [
-          TautulliActivityDetailsUserAction(sessionId: widget.sessionId),
-          TautulliActivityDetailsMetadataAction(sessionId: widget.sessionId),
+          TautulliActivityDetailsUserAction(sessionKey: widget.sessionKey),
+          TautulliActivityDetailsMetadataAction(sessionKey: widget.sessionKey),
         ]);
   }
 
@@ -98,7 +77,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
           if (snapshot.hasData) {
             TautulliSession? session = snapshot.data!.sessions!
                 .firstWhereOrNull(
-                    (element) => element.sessionId == widget.sessionId);
+                    (element) => element.sessionKey == widget.sessionKey);
             return _session(session);
           }
           return const LunaLoader();

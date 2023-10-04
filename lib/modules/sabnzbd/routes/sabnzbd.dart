@@ -1,20 +1,25 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/tables/sabnzbd.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/sabnzbd.dart';
+import 'package:lunasea/router/routes/sabnzbd.dart';
+import 'package:lunasea/system/filesystem/file.dart';
+import 'package:lunasea/system/filesystem/filesystem.dart';
 
-class SABnzbd extends StatefulWidget {
-  static const ROUTE_NAME = '/sabnzbd';
+class SABnzbdRoute extends StatefulWidget {
+  final bool showDrawer;
 
-  const SABnzbd({
+  const SABnzbdRoute({
     Key? key,
+    this.showDrawer = true,
   }) : super(key: key);
 
   @override
-  State<SABnzbd> createState() => _State();
+  State<SABnzbdRoute> createState() => _State();
 }
 
-class _State extends State<SABnzbd> {
+class _State extends State<SABnzbdRoute> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
   String _profileState = LunaProfile.current.toString();
@@ -29,7 +34,7 @@ class _State extends State<SABnzbd> {
   void initState() {
     super.initState();
     _pageController = LunaPageController(
-        initialPage: SABnzbdDatabaseValue.NAVIGATION_INDEX.data);
+        initialPage: SABnzbdDatabase.NAVIGATION_INDEX.read());
   }
 
   @override
@@ -37,7 +42,7 @@ class _State extends State<SABnzbd> {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       body: _body(),
-      drawer: _drawer(),
+      drawer: widget.showDrawer ? _drawer() : null,
       appBar: _appBar() as PreferredSizeWidget?,
       bottomNavigationBar: _bottomNavigationBar(),
       extendBodyBehindAppBar: false,
@@ -51,20 +56,19 @@ class _State extends State<SABnzbd> {
   Widget _drawer() => LunaDrawer(page: LunaModule.SABNZBD.key);
 
   Widget? _bottomNavigationBar() {
-    if (_api.enabled!)
+    if (LunaProfile.current.sabnzbdEnabled)
       return SABnzbdNavigationBar(pageController: _pageController);
     return null;
   }
 
   Widget _appBar() {
-    List<String> profiles =
-        Database.profiles.box.keys.fold([], (value, element) {
-      if (Database.profiles.box.get(element)?.sabnzbdEnabled ?? false)
+    List<String> profiles = LunaBox.profiles.keys.fold([], (value, element) {
+      if (LunaBox.profiles.read(element)?.sabnzbdEnabled ?? false)
         value.add(element);
       return value;
     });
     List<Widget>? actions;
-    if (_api.enabled!)
+    if (LunaProfile.current.sabnzbdEnabled)
       actions = [
         Selector<SABnzbdState, bool>(
           selector: (_, model) => model.error,
@@ -77,8 +81,9 @@ class _State extends State<SABnzbd> {
         ),
       ];
     return LunaAppBar.dropdown(
-      title: LunaModule.SABNZBD.name,
-      useDrawer: true,
+      title: LunaModule.SABNZBD.title,
+      useDrawer: widget.showDrawer,
+      hideLeading: !widget.showDrawer,
       profiles: profiles,
       actions: actions,
       pageController: _pageController,
@@ -87,10 +92,10 @@ class _State extends State<SABnzbd> {
   }
 
   Widget _body() {
-    if (!_api.enabled!)
+    if (!LunaProfile.current.sabnzbdEnabled)
       return LunaMessage.moduleNotEnabled(
         context: context,
-        module: LunaModule.SABNZBD.name,
+        module: LunaModule.SABNZBD.title,
       );
     return LunaPageView(
       controller: _pageController,
@@ -110,9 +115,8 @@ class _State extends State<SABnzbd> {
     if (values[0])
       switch (values[1]) {
         case 'web_gui':
-          ProfileHiveObject profile = LunaProfile.current;
-          await profile.sabnzbdHost
-              ?.lunaOpenGenericLink(headers: profile.sabnzbdHeaders);
+          LunaProfile profile = LunaProfile.current;
+          await profile.sabnzbdHost.openLink();
           break;
         case 'add_nzb':
           _addNZB();
@@ -130,13 +134,11 @@ class _State extends State<SABnzbd> {
           _serverDetails();
           break;
         default:
-          LunaLogger()
-              .warning('SABnzbd', '_handlePopup', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 
-  Future<void> _serverDetails() async =>
-      Navigator.of(context).pushNamed(SABnzbdStatistics.ROUTE_NAME);
+  Future<void> _serverDetails() async => SABnzbdRoutes.STATISTICS.go();
 
   Future<void> _completeAction() async {
     List values = await SABnzbdDialogs.changeOnCompleteAction(context);
@@ -204,31 +206,33 @@ class _State extends State<SABnzbd> {
           _addByFile();
           break;
         default:
-          LunaLogger()
-              .warning('SABnzbd', '_addNZB', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 
   Future<void> _addByFile() async {
     try {
-      File? _file =
-          await LunaFileSystem().import(context, ['nzb', 'zip', 'rar', 'gz']);
+      LunaFile? _file = await LunaFileSystem().read(context, [
+        'nzb',
+        'zip',
+        'rar',
+        'gz',
+      ]);
       if (_file != null) {
-        List<int> _data = _file.readAsBytesSync();
-        String _name = _file.path.substring(_file.path.lastIndexOf('/') + 1);
-        if (_data.isNotEmpty)
-          await _api.uploadFile(_data, _name).then((value) {
+        if (_file.data.isNotEmpty) {
+          await _api.uploadFile(_file.data, _file.name).then((value) {
             _refreshKeys[0]?.currentState?.show();
             showLunaSuccessSnackBar(
               title: 'Uploaded NZB (File)',
-              message: _name,
+              message: _file.name,
             );
           });
-      } else {
-        showLunaErrorSnackBar(
-          title: 'Failed to Upload NZB',
-          message: 'Please select a valid file type',
-        );
+        } else {
+          showLunaErrorSnackBar(
+            title: 'Failed to Upload NZB',
+            message: 'Please select a valid file type',
+          );
+        }
       }
     } catch (error, stack) {
       LunaLogger().error('Failed to add NZB by file', error, stack);

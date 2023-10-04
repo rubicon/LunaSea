@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/router.dart';
 
 class RadarrEditMovieActionBar extends StatelessWidget {
   const RadarrEditMovieActionBar({
@@ -23,19 +24,22 @@ class RadarrEditMovieActionBar extends StatelessWidget {
   }
 
   Future<void> _updateOnTap(BuildContext context) async {
-    if (context.read<RadarrMoviesEditState>().canExecuteAction) {
-      context.read<RadarrMoviesEditState>().state = LunaLoadingState.ACTIVE;
-      if (context.read<RadarrMoviesEditState>().movie != null) {
-        RadarrMovie movie = context
-            .read<RadarrMoviesEditState>()
-            .movie!
-            .updateEdits(context.read<RadarrMoviesEditState>());
-        bool result = await RadarrAPIHelper().updateMovie(
-          context: context,
-          movie: movie,
-        );
-        if (result) Navigator.of(context).lunaSafetyPop();
+    final state = context.read<RadarrMoviesEditState>();
+    state.state = LunaLoadingState.ACTIVE;
+
+    if (state.canExecuteAction && state.movie != null) {
+      bool moveFiles = false;
+      if (state.path != state.movie?.path) {
+        moveFiles = await RadarrDialogs().moveFiles();
       }
+
+      final movie = state.movie!.updateEdits(state);
+      bool result = await RadarrAPIHelper().updateMovie(
+        context: context,
+        movie: movie,
+        moveFiles: moveFiles,
+      );
+      if (result) LunaRouter().popSafely();
     }
   }
 }

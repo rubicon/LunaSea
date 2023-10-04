@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:lunasea/core.dart';
-import 'package:lunasea/modules/sonarr.dart';
-import './abstract.dart';
+import 'package:lunasea/database/tables/lunasea.dart';
+import 'package:lunasea/extensions/string/string.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
+
+import 'package:lunasea/system/logger.dart';
+import 'package:lunasea/widgets/ui.dart';
+import 'package:lunasea/vendor.dart';
+import 'package:lunasea/modules/sonarr/core/state.dart';
+import 'package:lunasea/modules/dashboard/core/api/data/abstract.dart';
 
 class CalendarSonarrData extends CalendarData {
-  final Map<String, dynamic> api = LunaProfile.current.getSonarr();
   String episodeTitle;
   int seasonNumber;
   int episodeNumber;
@@ -27,12 +32,13 @@ class CalendarSonarrData extends CalendarData {
 
   @override
   List<TextSpan> get body {
+    final released = hasAired;
     return [
       TextSpan(
         children: [
           TextSpan(
               text: seasonNumber == 0 ? 'Specials' : 'Season $seasonNumber'),
-          TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+          TextSpan(text: LunaUI.TEXT_BULLET.pad()),
           TextSpan(text: 'Episode $episodeNumber'),
         ],
       ),
@@ -44,10 +50,10 @@ class CalendarSonarrData extends CalendarData {
       ),
       if (!hasFile)
         TextSpan(
-          text: hasAired ? 'sonarr.Missing'.tr() : 'sonarr.Unaired'.tr(),
+          text: released ? 'sonarr.Missing'.tr() : 'sonarr.Unaired'.tr(),
           style: TextStyle(
             fontWeight: LunaUI.FONT_WEIGHT_BOLD,
-            color: hasAired ? LunaColours.red : LunaColours.blue,
+            color: released ? LunaColours.red : LunaColours.blue,
           ),
         ),
       if (hasFile)
@@ -67,8 +73,9 @@ class CalendarSonarrData extends CalendarData {
   }
 
   @override
-  Future<void> enterContent(BuildContext context) async =>
-      SonarrSeriesDetailsRouter().navigateTo(context, seriesID);
+  Future<void> enterContent(BuildContext context) async {
+    SonarrRoutes.SERIES.go(params: {'series': seriesID.toString()});
+  }
 
   @override
   Widget trailing(BuildContext context) => LunaIconButton(
@@ -83,7 +90,7 @@ class CalendarSonarrData extends CalendarData {
 
   String get airTimeString {
     if (airTimeObject != null) {
-      return LunaDatabaseValue.USE_24_HOUR_TIME.data
+      return LunaSeaDatabase.USE_24_HOUR_TIME.read()
           ? DateFormat.Hm().format(airTimeObject!)
           : DateFormat('hh:mm\na').format(airTimeObject!);
     }
@@ -116,11 +123,11 @@ class CalendarSonarrData extends CalendarData {
   }
 
   @override
-  Future<void> trailingOnLongPress(BuildContext context) async =>
-      SonarrReleasesRouter().navigateTo(
-        context,
-        episodeId: id,
-      );
+  Future<void> trailingOnLongPress(BuildContext context) async {
+    SonarrRoutes.RELEASES.go(queryParams: {
+      'episode': id.toString(),
+    });
+  }
 
   @override
   String? backgroundUrl(BuildContext context) {

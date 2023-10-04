@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
+import 'package:lunasea/extensions/int/duration.dart';
 import 'package:lunasea/modules/radarr.dart';
 
 extension LunaRadarrMovieExtension on RadarrMovie {
   String get lunaRuntime {
-    if (this.runtime != null && this.runtime != 0)
-      return this.runtime.lunaRuntime();
-    return LunaUI.TEXT_EMDASH;
+    return this.runtime.asVideoDuration();
   }
 
   String get lunaAlternateTitles {
@@ -39,8 +40,7 @@ extension LunaRadarrMovieExtension on RadarrMovie {
   }
 
   String lunaDateAdded([bool short = false]) {
-    if (this.added != null)
-      return this.added!.lunaDateReadable(shortMonth: short);
+    if (this.added != null) return this.added!.asDateOnly(shortenMonth: short);
     return LunaUI.TEXT_EMDASH;
   }
 
@@ -52,25 +52,25 @@ extension LunaRadarrMovieExtension on RadarrMovie {
 
   String lunaInCinemasOn([bool short = false]) {
     if (this.inCinemas != null)
-      return this.inCinemas!.lunaDateReadable(shortMonth: short);
+      return this.inCinemas!.asDateOnly(shortenMonth: short);
     return LunaUI.TEXT_EMDASH;
   }
 
   String lunaPhysicalReleaseDate([bool short = false]) {
     if (this.physicalRelease != null)
-      return this.physicalRelease!.lunaDateReadable(shortMonth: short);
+      return this.physicalRelease!.asDateOnly(shortenMonth: short);
     return LunaUI.TEXT_EMDASH;
   }
 
   String lunaDigitalReleaseDate([bool short = false]) {
     if (this.digitalRelease != null)
-      return this.digitalRelease!.lunaDateReadable(shortMonth: short);
+      return this.digitalRelease!.asDateOnly(shortenMonth: short);
     return LunaUI.TEXT_EMDASH;
   }
 
   String get lunaReleaseDate {
     if (this.lunaEarlierReleaseDate != null)
-      return this.lunaEarlierReleaseDate!.lunaDateReadable();
+      return this.lunaEarlierReleaseDate!.asDateOnly();
     return LunaUI.TEXT_EMDASH;
   }
 
@@ -90,7 +90,7 @@ extension LunaRadarrMovieExtension on RadarrMovie {
 
   String get lunaFileSize {
     if (!this.hasFile!) return LunaUI.TEXT_EMDASH;
-    return this.sizeOnDisk.lunaBytesToString();
+    return this.sizeOnDisk.asBytes();
   }
 
   Text lunaHasFileTextObject() {
@@ -122,7 +122,7 @@ extension LunaRadarrMovieExtension on RadarrMovie {
       );
     // In Cinemas
     if (this.inCinemas != null && this.inCinemas!.toLocal().isAfter(now)) {
-      String _date = this.inCinemas!.lunaDaysDifference.toUpperCase();
+      String _date = this.inCinemas!.asDaysDifference().toUpperCase();
       return Text(
         _date == 'TODAY' ? _date : 'IN $_date',
         style: const TextStyle(
@@ -135,7 +135,7 @@ extension LunaRadarrMovieExtension on RadarrMovie {
     DateTime? _release = lunaEarlierReleaseDate;
     // Releases
     if (_release != null) {
-      String _date = _release.lunaDaysDifference.toUpperCase();
+      String _date = _release.asDaysDifference().toUpperCase();
       return Text(
         _date == 'TODAY' ? _date : 'IN $_date',
         style: const TextStyle(
@@ -157,7 +157,7 @@ extension LunaRadarrMovieExtension on RadarrMovie {
 
   /// Compare two movies by their release dates. Returns an integer value compatible with `.sort()` in arrays.
   ///
-  /// Compares and uses the earlier date between `phyiscalRelease` and `digitalRelease`.
+  /// Compares and uses the earlier date between `physicalRelease` and `digitalRelease`.
   int lunaCompareToByReleaseDate(RadarrMovie movie) {
     if (this.physicalRelease == null &&
         this.digitalRelease == null &&

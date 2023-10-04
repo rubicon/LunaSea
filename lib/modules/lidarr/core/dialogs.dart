@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
 import 'package:lunasea/modules/lidarr.dart';
 
 class LidarrDialogs {
@@ -229,7 +230,7 @@ class LidarrDialogs {
           subtitle: LunaDialog.richText(
             children: [
               LunaDialog.bolded(
-                text: folders[index].freeSpace.lunaBytesToString(),
+                text: folders[index].freeSpace.asBytes(),
                 fontSize: LunaDialog.BUTTON_SIZE,
               ),
             ],
@@ -318,12 +319,13 @@ class LidarrDialogs {
       ],
       showCancelButton: false,
       content: [
-        LidarrDatabaseValue.ADD_ARTIST_SEARCH_FOR_MISSING.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        LidarrDatabase.ADD_ARTIST_SEARCH_FOR_MISSING.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'lidarr.StartSearchForMissingAlbums'.tr(),
-            value: LidarrDatabaseValue.ADD_ARTIST_SEARCH_FOR_MISSING.data,
-            onChanged: (value) =>
-                LidarrDatabaseValue.ADD_ARTIST_SEARCH_FOR_MISSING.put(value),
+            value: LidarrDatabase.ADD_ARTIST_SEARCH_FOR_MISSING.read(),
+            onChanged: (value) {
+              LidarrDatabase.ADD_ARTIST_SEARCH_FOR_MISSING.update(value!);
+            },
           ),
         ),
       ],

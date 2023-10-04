@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
-import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationRadarrRouter extends SettingsPageRouter {
-  SettingsConfigurationRadarrRouter() : super('/settings/configuration/radarr');
+class ConfigurationRadarrRoute extends StatefulWidget {
+  const ConfigurationRadarrRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  Widget widget() => _Widget();
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationRadarrRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationRadarrRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -34,7 +27,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Radarr',
+      title: LunaModule.RADARR.title,
       scrollControllers: [scrollController],
     );
   }
@@ -56,12 +49,11 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _enabledToggle() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic _, __) => LunaBlock(
-        title: 'Enable ${LunaModule.RADARR.name}',
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'settings.EnableModule'.tr(args: [LunaModule.RADARR.title]),
         trailing: LunaSwitch(
-          value: LunaProfile.current.radarrEnabled ?? false,
+          value: LunaProfile.current.radarrEnabled,
           onChanged: (value) {
             LunaProfile.current.radarrEnabled = value;
             LunaProfile.current.save();
@@ -74,11 +66,16 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _connectionDetailsPage() {
     return LunaBlock(
-      title: 'Connection Details',
-      body: const [TextSpan(text: 'Connection Details for Radarr')],
+      title: 'settings.ConnectionDetails'.tr(),
+      body: [
+        TextSpan(
+          text: 'settings.ConnectionDetailsDescription'.tr(
+            args: [LunaModule.RADARR.title],
+          ),
+        ),
+      ],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationRadarrConnectionDetailsRouter()
-          .navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_RADARR_CONNECTION_DETAILS.go,
     );
   }
 
@@ -87,46 +84,50 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.DefaultOptions'.tr(),
       body: [TextSpan(text: 'settings.DefaultOptionsDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationRadarrDefaultOptionsRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_RADARR_DEFAULT_OPTIONS.go,
     );
   }
 
   Widget _defaultPagesPage() {
     return LunaBlock(
-      title: 'Default Pages',
-      body: const [TextSpan(text: 'Set Default Landing Pages')],
+      title: 'settings.DefaultPages'.tr(),
+      body: [TextSpan(text: 'settings.DefaultPagesDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationRadarrDefaultPagesRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_RADARR_DEFAULT_PAGES.go,
     );
   }
 
   Widget _discoverUseRadarrSuggestionsToggle() {
-    RadarrDatabaseValue _db = RadarrDatabaseValue.ADD_DISCOVER_USE_SUGGESTIONS;
-    return _db.listen(
-      builder: (context, _, __) => LunaBlock(
-        title: 'Discover Suggestions',
-        body: const [TextSpan(text: 'Add Suggested Releases in Discover')],
+    const _db = RadarrDatabase.ADD_DISCOVER_USE_SUGGESTIONS;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'radarr.DiscoverSuggestions'.tr(),
+        body: [TextSpan(text: 'radarr.DiscoverSuggestionsDescription'.tr())],
         trailing: LunaSwitch(
-          value: _db.data,
-          onChanged: (value) => _db.put(value),
+          value: _db.read(),
+          onChanged: (value) => _db.update(value),
         ),
       ),
     );
   }
 
   Widget _queueSize() {
-    RadarrDatabaseValue _db = RadarrDatabaseValue.QUEUE_PAGE_SIZE;
-    return _db.listen(
-      builder: (context, _, __) => LunaBlock(
-        title: 'Queue Size',
-        body: [TextSpan(text: _db.data == 1 ? '1 Item' : '${_db.data} Items')],
+    const _db = RadarrDatabase.QUEUE_PAGE_SIZE;
+    return _db.listenableBuilder(
+      builder: (context, _) => LunaBlock(
+        title: 'radarr.QueueSize'.tr(),
+        body: [
+          TextSpan(
+            text: _db.read() == 1
+                ? 'lunasea.OneItem'.tr()
+                : 'lunasea.Items'.tr(args: [_db.read().toString()]),
+          ),
+        ],
         trailing: const LunaIconButton(icon: Icons.queue_play_next_rounded),
         onTap: () async {
           Tuple2<bool, int> result =
               await RadarrDialogs().setQueuePageSize(context);
-          if (result.item1) _db.put(result.item2);
+          if (result.item1) _db.update(result.item2);
         },
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/datetime.dart';
+import 'package:lunasea/extensions/double/time.dart';
 import 'package:lunasea/modules/sonarr.dart';
 
 extension SonarrEventTypeLunaExtension on SonarrEventType {
@@ -137,10 +139,11 @@ extension SonarrEventTypeLunaExtension on SonarrEventType {
         title: 'sonarr.Quality'.tr(),
         body: history.quality?.quality?.name ?? LunaUI.TEXT_EMDASH,
       ),
-      LunaTableContent(
-        title: 'sonarr.Languages'.tr(),
-        body: history.language?.name ?? LunaUI.TEXT_EMDASH,
-      ),
+      if (history.language != null)
+        LunaTableContent(
+          title: 'sonarr.Languages'.tr(),
+          body: history.language?.name ?? LunaUI.TEXT_EMDASH,
+        ),
       LunaTableContent(
         title: 'sonarr.Client'.tr(),
         body: history.data!['downloadClient'] ?? LunaUI.TEXT_EMDASH,
@@ -240,10 +243,11 @@ extension SonarrEventTypeLunaExtension on SonarrEventType {
         title: 'sonarr.Quality'.tr(),
         body: history.quality?.quality?.name ?? LunaUI.TEXT_EMDASH,
       ),
-      LunaTableContent(
-        title: 'sonarr.Languages'.tr(),
-        body: history.language?.name ?? LunaUI.TEXT_EMDASH,
-      ),
+      if (history.language != null)
+        LunaTableContent(
+          title: 'sonarr.Languages'.tr(),
+          body: history.language?.name ?? LunaUI.TEXT_EMDASH,
+        ),
       LunaTableContent(
         title: 'sonarr.Indexer'.tr(),
         body: history.data!['indexer'],
@@ -267,12 +271,12 @@ extension SonarrEventTypeLunaExtension on SonarrEventType {
       ),
       LunaTableContent(
         title: 'sonarr.Age'.tr(),
-        body: double.tryParse(history.data!['ageHours'])?.asTimeAgo,
+        body: double.tryParse(history.data!['ageHours'])?.asTimeAgo(),
       ),
       LunaTableContent(
           title: 'sonarr.PublishedDate'.tr(),
           body: DateTime.tryParse(history.data!['publishedDate'])
-              ?.lunaDateTimeReadable(timeOnNewLine: true)),
+              ?.asDateTime(delimiter: '\n')),
     ];
   }
 

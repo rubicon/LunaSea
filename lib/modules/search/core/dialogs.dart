@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/search.dart';
+import 'package:lunasea/utils/profile_tools.dart';
 
 class SearchDialogs {
   Future<Tuple2<bool, SearchDownloadType?>> downloadResult(
@@ -18,8 +19,8 @@ class SearchDialogs {
     await LunaDialog.dialog(
       context: context,
       title: 'search.Download'.tr(),
-      customContent: LunaDatabaseValue.ENABLED_PROFILE.listen(
-        builder: (context, lunaBox, widget) => LunaDialog.content(
+      customContent: LunaSeaDatabase.ENABLED_PROFILE.listenableBuilder(
+        builder: (context, _) => LunaDialog.content(
           children: [
             Padding(
               child: LunaPopupMenuButton<String>(
@@ -30,7 +31,7 @@ class SearchDialogs {
                     children: [
                       Expanded(
                         child: Text(
-                          LunaDatabaseValue.ENABLED_PROFILE.data,
+                          LunaSeaDatabase.ENABLED_PROFILE.read(),
                           style: const TextStyle(
                             fontSize: LunaUI.FONT_SIZE_H3,
                           ),
@@ -54,20 +55,18 @@ class SearchDialogs {
                 ),
                 onSelected: (result) {
                   HapticFeedback.selectionClick();
-                  LunaProfile().safelyChangeProfiles(result);
+                  LunaProfileTools().changeTo(result);
                 },
                 itemBuilder: (context) {
                   return <PopupMenuEntry<String>>[
-                    for (String? profile
-                        in Database.profiles.box.keys as Iterable<String?>)
+                    for (final profile in LunaBox.profiles.keys.cast<String>())
                       PopupMenuItem<String>(
                         value: profile,
                         child: Text(
-                          profile!,
+                          profile,
                           style: TextStyle(
                             fontSize: LunaUI.FONT_SIZE_H3,
-                            color: (LunaDatabaseValue.ENABLED_PROFILE.data ??
-                                        'default') ==
+                            color: LunaSeaDatabase.ENABLED_PROFILE.read() ==
                                     profile
                                 ? LunaColours.accent
                                 : Colors.white,
@@ -80,14 +79,14 @@ class SearchDialogs {
               padding: LunaDialog.tileContentPadding()
                   .add(const EdgeInsets.only(bottom: 16.0)),
             ),
-            if (LunaProfile.current.sabnzbdEnabled!)
+            if (LunaProfile.current.sabnzbdEnabled)
               LunaDialog.tile(
                 icon: SearchDownloadType.SABNZBD.icon,
                 iconColor: LunaColours().byListIndex(0),
                 text: SearchDownloadType.SABNZBD.name,
                 onTap: () => _setValues(true, SearchDownloadType.SABNZBD),
               ),
-            if (LunaProfile.current.nzbgetEnabled!)
+            if (LunaProfile.current.nzbgetEnabled)
               LunaDialog.tile(
                 icon: SearchDownloadType.NZBGET.icon,
                 iconColor: LunaColours().byListIndex(1),

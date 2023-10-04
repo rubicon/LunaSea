@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/int/bytes.dart';
 import 'package:lunasea/modules/radarr.dart';
 
 class RadarrDialogs {
@@ -466,20 +467,20 @@ class RadarrDialogs {
         ),
       ],
       content: [
-        RadarrDatabaseValue.QUEUE_REMOVE_FROM_CLIENT.listen(
-          builder: (context, box, _) => LunaDialog.checkbox(
+        RadarrDatabase.QUEUE_REMOVE_FROM_CLIENT.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'Remove From Client',
-            value: RadarrDatabaseValue.QUEUE_REMOVE_FROM_CLIENT.data,
+            value: RadarrDatabase.QUEUE_REMOVE_FROM_CLIENT.read(),
             onChanged: (selected) =>
-                RadarrDatabaseValue.QUEUE_REMOVE_FROM_CLIENT.put(selected),
+                RadarrDatabase.QUEUE_REMOVE_FROM_CLIENT.update(selected!),
           ),
         ),
-        RadarrDatabaseValue.QUEUE_BLACKLIST.listen(
-          builder: (context, box, _) => LunaDialog.checkbox(
+        RadarrDatabase.QUEUE_BLACKLIST.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'Blacklist Release',
-            value: RadarrDatabaseValue.QUEUE_BLACKLIST.data,
+            value: RadarrDatabase.QUEUE_BLACKLIST.read(),
             onChanged: (selected) =>
-                RadarrDatabaseValue.QUEUE_BLACKLIST.put(selected),
+                RadarrDatabase.QUEUE_BLACKLIST.update(selected!),
           ),
         ),
       ],
@@ -575,7 +576,7 @@ class RadarrDialogs {
           subtitle: LunaDialog.richText(
             children: [
               LunaDialog.bolded(
-                text: folders[index].freeSpace.lunaBytesToString(),
+                text: folders[index].freeSpace.asBytes(),
                 fontSize: LunaDialog.BUTTON_SIZE,
               ),
             ],
@@ -609,20 +610,20 @@ class RadarrDialogs {
         ),
       ],
       content: [
-        RadarrDatabaseValue.REMOVE_MOVIE_IMPORT_LIST.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        RadarrDatabase.REMOVE_MOVIE_IMPORT_LIST.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'Add to Exclusion List',
-            value: RadarrDatabaseValue.REMOVE_MOVIE_IMPORT_LIST.data,
+            value: RadarrDatabase.REMOVE_MOVIE_IMPORT_LIST.read(),
             onChanged: (value) =>
-                RadarrDatabaseValue.REMOVE_MOVIE_IMPORT_LIST.put(value),
+                RadarrDatabase.REMOVE_MOVIE_IMPORT_LIST.update(value!),
           ),
         ),
-        RadarrDatabaseValue.REMOVE_MOVIE_DELETE_FILES.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        RadarrDatabase.REMOVE_MOVIE_DELETE_FILES.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'Delete Files',
-            value: RadarrDatabaseValue.REMOVE_MOVIE_DELETE_FILES.data,
+            value: RadarrDatabase.REMOVE_MOVIE_DELETE_FILES.read(),
             onChanged: (value) =>
-                RadarrDatabaseValue.REMOVE_MOVIE_DELETE_FILES.put(value),
+                RadarrDatabase.REMOVE_MOVIE_DELETE_FILES.update(value!),
           ),
         ),
       ],
@@ -635,7 +636,7 @@ class RadarrDialogs {
     bool _flag = false;
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController _textController = TextEditingController(
-        text: RadarrDatabaseValue.QUEUE_PAGE_SIZE.data.toString());
+        text: RadarrDatabase.QUEUE_PAGE_SIZE.read().toString());
 
     void _setValues(bool flag) {
       if (_formKey.currentState!.validate()) {
@@ -689,16 +690,43 @@ class RadarrDialogs {
       ],
       showCancelButton: false,
       content: [
-        RadarrDatabaseValue.ADD_MOVIE_SEARCH_FOR_MISSING.listen(
-          builder: (context, value, _) => LunaDialog.checkbox(
+        RadarrDatabase.ADD_MOVIE_SEARCH_FOR_MISSING.listenableBuilder(
+          builder: (context, _) => LunaDialog.checkbox(
             title: 'radarr.StartSearchForMissingMovie'.tr(),
-            value: RadarrDatabaseValue.ADD_MOVIE_SEARCH_FOR_MISSING.data,
+            value: RadarrDatabase.ADD_MOVIE_SEARCH_FOR_MISSING.read(),
             onChanged: (value) =>
-                RadarrDatabaseValue.ADD_MOVIE_SEARCH_FOR_MISSING.put(value),
+                RadarrDatabase.ADD_MOVIE_SEARCH_FOR_MISSING.update(value!),
           ),
         ),
       ],
       contentPadding: LunaDialog.listDialogContentPadding(),
     );
+  }
+
+  Future<bool> moveFiles() async {
+    bool _flag = false;
+
+    void _setValues(bool flag) {
+      _flag = flag;
+      Navigator.of(LunaState.context, rootNavigator: true).pop();
+    }
+
+    await LunaDialog.dialog(
+      context: LunaState.context,
+      title: 'radarr.MoveFiles'.tr(),
+      contentPadding: LunaDialog.textDialogContentPadding(),
+      cancelButtonText: 'lunasea.No'.tr(),
+      buttons: [
+        LunaDialog.button(
+          text: 'lunasea.Yes'.tr(),
+          onPressed: () => _setValues(true),
+        ),
+      ],
+      content: [
+        LunaDialog.textContent(text: 'radarr.MoveFilesDescription'.tr()),
+      ],
+    );
+
+    return _flag;
   }
 }

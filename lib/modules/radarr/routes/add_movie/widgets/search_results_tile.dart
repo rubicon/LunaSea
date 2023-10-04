@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/routes/radarr.dart';
 
 class RadarrAddMovieSearchResultTile extends StatefulWidget {
   final RadarrMovie movie;
@@ -43,9 +46,9 @@ class _State extends State<RadarrAddMovieSearchResultTile> {
     return TextSpan(
       children: [
         TextSpan(text: widget.movie.lunaYear),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaRuntime),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: widget.movie.lunaStudio),
       ],
     );
@@ -82,12 +85,16 @@ class _State extends State<RadarrAddMovieSearchResultTile> {
       LunaDialogs().textPreview(context, widget.movie.title,
           widget.movie.overview ?? 'radarr.NoSummaryIsAvailable'.tr());
     } else if (widget.exists) {
-      RadarrMoviesDetailsRouter().navigateTo(context, widget.movie.id ?? -1);
+      RadarrRoutes.MOVIE.go(params: {
+        'movie': widget.movie.id!.toString(),
+      });
     } else {
-      RadarrAddMovieDetailsRouter().navigateTo(context, widget.movie, false);
+      RadarrRoutes.ADD_MOVIE_DETAILS.go(extra: widget.movie, queryParams: {
+        'isDiscovery': 'false',
+      });
     }
   }
 
   Future<void>? _onLongPress() async =>
-      widget.movie.tmdbId?.toString().lunaOpenTheMovieDBMovie();
+      widget.movie.tmdbId?.toString().openTmdbMovie();
 }

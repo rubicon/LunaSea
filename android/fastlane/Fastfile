@@ -1,30 +1,44 @@
 default_platform(:android)
-build_number = 1000000000 + number_of_commits()
 
 platform :android do
-  desc "Deploy a new alpha build to Google Play"
-  lane :alpha do
-    Dir.chdir "../.." do
-      sh("flutter", "clean")
-      sh("flutter", "packages", "get")
-      sh("flutter", "build", "appbundle", "--release", "--bundle-sksl-path=shaders/android_sksl.json", "--build-number=#{build_number}")
-    end
-    upload_to_play_store(
-      track: "alpha",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
-      skip_upload_metadata: true,
-      skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
+  desc "Build App Bundle"
+  lane :build_aab do |options|
+    sh(
+      "flutter",
+      "build",
+      "appbundle",
+      "--release",
+      "--build-number=#{options[:build_number]}",
     )
+
+    sh("mkdir", "-p", "../../output")
+    sh("mv", "../../build/app/outputs/bundle/release/app-release.aab", "../../output/lunasea-android.aab")
   end
 
-  desc "Deploy metadata changes to Google Play"
-  lane :metadata do
+  desc "Build APK"
+  lane :build_apk do |options|
+    sh(
+      "flutter",
+      "build",
+      "apk",
+      "--release",
+      "--build-number=#{options[:build_number]}",
+    )
+
+    sh("mkdir", "-p", "../../output")
+    sh("mv", "../../build/app/outputs/flutter-apk/app-release.apk", "../../output/lunasea-android.apk")
+  end
+
+  desc "Deploy to Google Play Store"
+  lane :deploy_playstore do |options|
     upload_to_play_store(
-      skip_upload_apk: true,
-      skip_upload_aab: true,
-      skip_upload_changelogs: true,
+      aab: options[:aab],
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      timeout: 600,
+      track: options[:track],
+      version_name: options[:version_name],
     )
   end
 end

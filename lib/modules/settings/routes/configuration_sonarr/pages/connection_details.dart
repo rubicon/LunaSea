@@ -2,41 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationSonarrConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationSonarrConnectionDetailsRouter()
-      : super('/settings/configuration/sonarr/connection');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationSonarrConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationSonarrConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) =>
-      super.noParameterRouteDefinition(router);
+  State<ConfigurationSonarrConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSonarrConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
-      appBar: _appBar() as PreferredSizeWidget?,
+      appBar: _appBar(),
       body: _body(),
       bottomNavigationBar: _bottomActionBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -50,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -64,7 +56,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.sonarrHost ?? '';
+    String host = LunaProfile.current.sonarrHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -84,7 +76,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _apiKey() {
-    String apiKey = LunaProfile.current.sonarrKey ?? '';
+    String apiKey = LunaProfile.current.sonarrKey;
     return LunaBlock(
       title: 'settings.ApiKey'.tr(),
       body: [
@@ -115,31 +107,34 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       text: 'settings.TestConnection'.tr(),
       icon: LunaIcons.CONNECTION_TEST,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.sonarrHost == null || _profile.sonarrHost!.isEmpty) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.sonarrHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to Sonarr',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.SONARR.title]),
           );
           return;
         }
-        if (_profile.sonarrKey == null || _profile.sonarrKey!.isEmpty) {
+        if (_profile.sonarrKey.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'API Key Required',
-            message: 'API key is required to connect to Sonarr',
+            title: 'settings.ApiKeyRequired'.tr(),
+            message: 'settings.ApiKeyRequiredMessage'
+                .tr(args: [LunaModule.SONARR.title]),
           );
           return;
         }
-        Sonarr(
-          host: _profile.sonarrHost!,
-          apiKey: _profile.sonarrKey!,
+        SonarrAPI(
+          host: _profile.sonarrHost,
+          apiKey: _profile.sonarrKey,
           headers: Map<String, dynamic>.from(
-            _profile.sonarrHeaders ?? {},
+            _profile.sonarrHeaders,
           ),
         ).system.getStatus().then((_) {
           showLunaSuccessSnackBar(
-            title: 'Connected Successfully',
-            message: 'Sonarr is ready to use with LunaSea',
+            title: 'settings.ConnectedSuccessfully'.tr(),
+            message: 'settings.ConnectedSuccessfullyMessage'
+                .tr(args: [LunaModule.SONARR.title]),
           );
         }).catchError((error, trace) {
           LunaLogger().error(
@@ -148,7 +143,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
             trace,
           );
           showLunaErrorSnackBar(
-            title: 'Connection Test Failed',
+            title: 'settings.ConnectionTestFailed'.tr(),
             error: error,
           );
         });
@@ -161,9 +156,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async => SettingsConfigurationSonarrHeadersRouter().navigateTo(
-        context,
-      ),
+      onTap: SettingsRoutes.CONFIGURATION_SONARR_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

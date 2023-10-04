@@ -3,23 +3,27 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Simple dart script to concat all module's localization files into a single file for loading into LunaSea.
+/// Simple dart script to concatenate all module's localization files into a single file for loading into LunaSea.
 ///
-/// This script is designed to be run from the root of the project, using derry: `derry run build_localizations`.
+/// This script is designed to be run from the root of the project.
 void main() {
   // Check and delete any found prepared localizations
   Directory _assets = Directory('assets/localization');
   if (_assets.existsSync()) _assets.deleteSync(recursive: true);
   // Go through each localization file
   Directory _localization = Directory('localization');
-  _localization.listSync().forEach((folder) {
+  List<FileSystemEntity> _entities = _localization.listSync();
+  _entities.sort((a, b) => a.path.compareTo(b.path));
+  _entities.forEach((entity) {
     // Ensure that the filesystem entity is a folder, and finds any files within
-    if (FileSystemEntity.isDirectorySync(folder.path)) {
-      Directory module = Directory(folder.path);
+    if (FileSystemEntity.isDirectorySync(entity.path)) {
+      Directory module = Directory(entity.path);
       print(
         'Processing Module: ${module.path.substring(module.path.lastIndexOf('/') + 1)}',
       );
-      module.listSync().forEach((language) {
+      List<FileSystemEntity> _languages = module.listSync();
+      _languages.sort((a, b) => a.path.compareTo(b.path));
+      _languages.forEach((language) {
         print(
           '--> Adding language: ${language.path.substring(language.path.lastIndexOf('/') + 1)}...',
         );
@@ -34,11 +38,19 @@ void main() {
           _createFile(path);
           File file = File(language.path);
           _writeFile(path, jsonDecode(file.readAsStringSync()));
+          // If required, create a stub primary language to prevent asset load failures
+          if (name.contains('-')) _writeStubPrimaryLanguage(_assets.path, name);
         }
       });
       print('');
     }
   });
+}
+
+void _writeStubPrimaryLanguage(String assets, String language) {
+  final primary = language.split('-').first;
+  final path = '$assets/$primary.json';
+  _createFile(path);
 }
 
 void _writeFile(String path, Map<dynamic, dynamic>? data) {
@@ -47,7 +59,6 @@ void _writeFile(String path, Map<dynamic, dynamic>? data) {
   Map<dynamic, dynamic>? fileData = jsonDecode(file.readAsStringSync());
   // Ensure the file exists
   if (file.existsSync()) {
-    print('    Appending localization strings...');
     // Add all the localization strings to the file, and write back the string version of the map.
     fileData!.addAll(data!);
     JsonEncoder encoder = const JsonEncoder.withIndent('    ');
@@ -64,11 +75,7 @@ void _writeFile(String path, Map<dynamic, dynamic>? data) {
 
 void _createFile(String path) {
   File file = File(path);
-  if (file.existsSync()) {
-    print('    Found file. Skipping file creation...');
-    return;
-  }
-  print('    Created empty file...');
+  if (file.existsSync()) return;
   file.createSync(recursive: true);
   file.writeAsStringSync(
     '{}',

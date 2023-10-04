@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrUpcomingTile extends StatefulWidget {
   final SonarrCalendar record;
@@ -54,7 +56,7 @@ class _State extends State<SonarrUpcomingTile> {
             text: widget.record.seasonNumber == 0
                 ? 'Specials'
                 : 'Season ${widget.record.seasonNumber}'),
-        TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+        TextSpan(text: LunaUI.TEXT_BULLET.pad()),
         TextSpan(text: 'Episode ${widget.record.episodeNumber}'),
       ],
     );
@@ -92,16 +94,18 @@ class _State extends State<SonarrUpcomingTile> {
     );
   }
 
-  Future<void> _onTap() async => SonarrSeasonDetailsRouter().navigateTo(
-        context,
-        widget.record.seriesId ?? -1,
-        widget.record.seasonNumber ?? -1,
-      );
+  Future<void> _onTap() async {
+    SonarrRoutes.SERIES_SEASON.go(params: {
+      'series': (widget.record.seriesId ?? -1).toString(),
+      'season': (widget.record.seasonNumber ?? -1).toString(),
+    });
+  }
 
-  Future<void> _onLongPress() async => SonarrSeriesDetailsRouter().navigateTo(
-        context,
-        widget.record.seriesId!,
-      );
+  Future<void> _onLongPress() async {
+    SonarrRoutes.SERIES.go(params: {
+      'series': widget.record.seriesId!.toString(),
+    });
+  }
 
   Future<void> _trailingOnPressed() async {
     Provider.of<SonarrState>(context, listen: false)
@@ -124,9 +128,9 @@ class _State extends State<SonarrUpcomingTile> {
         });
   }
 
-  Future<void> _trailingOnLongPress() async =>
-      SonarrReleasesRouter().navigateTo(
-        context,
-        episodeId: widget.record.id,
-      );
+  Future<void> _trailingOnLongPress() async {
+    SonarrRoutes.RELEASES.go(queryParams: {
+      'episode': widget.record.id.toString(),
+    });
+  }
 }

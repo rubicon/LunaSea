@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/lidarr.dart';
+import 'package:lunasea/router/routes/lidarr.dart';
 
-class Lidarr extends StatefulWidget {
-  static const ROUTE_NAME = '/lidarr';
-
-  const Lidarr({
+class LidarrRoute extends StatefulWidget {
+  const LidarrRoute({
     Key? key,
   }) : super(key: key);
 
   @override
-  State<Lidarr> createState() => _State();
+  State<LidarrRoute> createState() => _State();
 }
 
-class _State extends State<Lidarr> {
+class _State extends State<LidarrRoute> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   LunaPageController? _pageController;
   String _profileState = LunaProfile.current.toString();
@@ -28,8 +28,8 @@ class _State extends State<Lidarr> {
   @override
   void initState() {
     super.initState();
-    _pageController = LunaPageController(
-        initialPage: LidarrDatabaseValue.NAVIGATION_INDEX.data);
+    _pageController =
+        LunaPageController(initialPage: LidarrDatabase.NAVIGATION_INDEX.read());
   }
 
   @override
@@ -49,16 +49,16 @@ class _State extends State<Lidarr> {
   Widget _drawer() => LunaDrawer(page: LunaModule.LIDARR.key);
 
   Widget? _bottomNavigationBar() {
-    if (_api.enabled!)
+    if (LunaProfile.current.lidarrEnabled)
       return LidarrNavigationBar(pageController: _pageController);
     return null;
   }
 
   Widget _body() {
-    if (!_api.enabled!)
+    if (!LunaProfile.current.lidarrEnabled)
       return LunaMessage.moduleNotEnabled(
         context: context,
-        module: LunaModule.LIDARR.name,
+        module: LunaModule.LIDARR.title,
       );
     return LunaPageView(
       controller: _pageController,
@@ -80,14 +80,13 @@ class _State extends State<Lidarr> {
   }
 
   Widget _appBar() {
-    List<String> profiles =
-        Database.profiles.box.keys.fold([], (value, element) {
-      if (Database.profiles.box.get(element)?.lidarrEnabled ?? false)
-        value.add(element);
-      return value;
+    const db = LunaBox.profiles;
+    final profiles = db.keys.fold<List<String>>([], (arr, key) {
+      if (LunaBox.profiles.read(key)?.lidarrEnabled ?? false) arr.add(key);
+      return arr;
     });
     List<Widget>? actions;
-    if (_api.enabled!)
+    if (LunaProfile.current.lidarrEnabled)
       actions = [
         LunaIconButton(
           icon: Icons.add_rounded,
@@ -99,7 +98,7 @@ class _State extends State<Lidarr> {
         ),
       ];
     return LunaAppBar.dropdown(
-      title: LunaModule.LIDARR.name,
+      title: LunaModule.LIDARR.title,
       useDrawer: true,
       profiles: profiles,
       actions: actions,
@@ -111,31 +110,7 @@ class _State extends State<Lidarr> {
   Future<void> _enterAddArtist() async {
     final _model = Provider.of<LidarrState>(context, listen: false);
     _model.addSearchQuery = '';
-    final dynamic result =
-        await Navigator.of(context).pushNamed(LidarrAddSearch.ROUTE_NAME);
-    if (result != null)
-      switch (result[0]) {
-        case 'artist_added':
-          {
-            showLunaSuccessSnackBar(
-              title: 'Artist Added',
-              message: result[1],
-              showButton: true,
-              buttonOnPressed: () => Navigator.of(context).pushNamed(
-                LidarrDetailsArtist.ROUTE_NAME,
-                arguments: LidarrDetailsArtistArguments(
-                  artistID: result[2],
-                  data: null,
-                ),
-              ),
-            );
-            _refreshAllPages();
-            break;
-          }
-        default:
-          LunaLogger().warning(
-              'Lidarr', '_enterAddArtist', 'Unknown Case: ${result[0]}');
-      }
+    LidarrRoutes.ADD_ARTIST.go();
   }
 
   Future<void> _handlePopup() async {
@@ -143,9 +118,8 @@ class _State extends State<Lidarr> {
     if (values[0])
       switch (values[1]) {
         case 'web_gui':
-          ProfileHiveObject profile = LunaProfile.current;
-          await profile.lidarrHost
-              ?.lunaOpenGenericLink(headers: profile.lidarrHeaders);
+          LunaProfile profile = LunaProfile.current;
+          await profile.lidarrHost.openLink();
           break;
         case 'update_library':
           await _api
@@ -189,8 +163,7 @@ class _State extends State<Lidarr> {
             break;
           }
         default:
-          LunaLogger()
-              .warning('Lidarr', '_handlePopup', 'Unknown Case: ${values[1]}');
+          LunaLogger().warning('Unknown Case: ${values[1]}');
       }
   }
 

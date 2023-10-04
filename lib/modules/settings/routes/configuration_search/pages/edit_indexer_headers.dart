@@ -1,62 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/database/models/indexer.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
 
-class SettingsConfigurationSearchEditHeadersRouter extends SettingsPageRouter {
-  SettingsConfigurationSearchEditHeadersRouter()
-      : super('/settings/configuration/search/edit/:indexerid/headers');
+class ConfigurationSearchEditIndexerHeadersRoute extends StatefulWidget {
+  final int id;
 
-  @override
-  _Widget widget([int indexerId = -1]) => _Widget(indexerId: indexerId);
-
-  @override
-  Future<void> navigateTo(BuildContext context, [int indexerId = -1]) async {
-    LunaRouter.router.navigateTo(context, route(indexerId));
-  }
-
-  @override
-  String route([int indexerId = -1]) {
-    return super.fullRoute.replaceFirst(':indexerid', indexerId.toString());
-  }
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.withParameterRouteDefinition(
-      router,
-      (context, params) {
-        int indexerId = (params['indexerid']?.isNotEmpty ?? false)
-            ? (int.tryParse(params['indexerid']![0]) ?? -1)
-            : -1;
-        return _Widget(indexerId: indexerId);
-      },
-    );
-  }
-}
-
-class _Widget extends StatefulWidget {
-  final int indexerId;
-
-  const _Widget({
+  const ConfigurationSearchEditIndexerHeadersRoute({
     Key? key,
-    required this.indexerId,
+    required this.id,
   }) : super(key: key);
 
   @override
-  State<_Widget> createState() => _State();
+  State<ConfigurationSearchEditIndexerHeadersRoute> createState() => _State();
 }
 
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSearchEditIndexerHeadersRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  IndexerHiveObject? _indexer;
+  LunaIndexer? _indexer;
 
   @override
   Widget build(BuildContext context) {
-    if (widget.indexerId < 0)
-      return LunaInvalidRoute(
-          title: 'Custom Headers', message: 'Indexer Not Found');
-    if (!Database.indexers.box.containsKey(widget.indexerId))
-      return LunaInvalidRoute(
-          title: 'Custom Headers', message: 'Indexer Not Found');
+    if (widget.id < 0 || !LunaBox.indexers.contains(widget.id)) {
+      return InvalidRoutePage(
+        title: 'settings.CustomHeaders'.tr(),
+        message: 'search.IndexerNotFound'.tr(),
+      );
+    }
+
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       appBar: _appBar() as PreferredSizeWidget?,
@@ -67,7 +40,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Custom Headers',
+      title: 'settings.CustomHeaders'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -76,7 +49,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
     return LunaBottomActionBar(
       actions: [
         LunaButton.text(
-          text: 'Add Header',
+          text: 'settings.AddHeader'.tr(),
           icon: Icons.add_rounded,
           onTap: () async => HeaderUtility().addHeader(context,
               headers: _indexer!.headers, indexer: _indexer),
@@ -86,27 +59,25 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-        valueListenable:
-            Database.indexers.box.listenable(keys: [widget.indexerId]),
-        builder: (context, dynamic box, __) {
-          if (!Database.indexers.box.containsKey(widget.indexerId))
-            return Container();
-          _indexer = Database.indexers.box.get(widget.indexerId);
-          return LunaListView(
-            controller: scrollController,
-            children: [
-              if ((_indexer!.headers ?? {}).isEmpty)
-                LunaMessage.inList(text: 'No Headers Added'),
-              ..._list(),
-            ],
-          );
-        });
+    return LunaBox.indexers.listenableBuilder(
+      selectKeys: [widget.id],
+      builder: (context, _) {
+        if (!LunaBox.indexers.contains(widget.id)) return Container();
+        _indexer = LunaBox.indexers.read(widget.id);
+        return LunaListView(
+          controller: scrollController,
+          children: [
+            if (_indexer!.headers.isEmpty)
+              LunaMessage.inList(text: 'settings.NoHeadersAdded'.tr()),
+            ..._list(),
+          ],
+        );
+      },
+    );
   }
 
   List<Widget> _list() {
-    Map<String, dynamic> headers =
-        (_indexer!.headers ?? {}).cast<String, dynamic>();
+    final headers = _indexer!.headers.cast<String, dynamic>();
     List<String> _sortedKeys = headers.keys.toList()..sort();
     return _sortedKeys
         .map<LunaBlock>((key) => _headerBlock(key, headers[key]))

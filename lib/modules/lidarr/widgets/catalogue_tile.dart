@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/lidarr.dart';
+import 'package:lunasea/router/routes/lidarr.dart';
 
 class LidarrCatalogueTile extends StatefulWidget {
   final LidarrCatalogueData data;
@@ -32,7 +34,7 @@ class _State extends State<LidarrCatalogueTile> {
           TextSpan(
             children: [
               TextSpan(text: widget.data.albums),
-              TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+              TextSpan(text: LunaUI.TEXT_BULLET.pad()),
               TextSpan(text: widget.data.tracks),
             ],
           ),
@@ -46,9 +48,9 @@ class _State extends State<LidarrCatalogueTile> {
         ),
         posterPlaceholderIcon: LunaIcons.USER,
         posterUrl: widget.data.posterURI(),
-        posterHeaders: LunaProfile.current.getLidarr()['headers'],
+        posterHeaders: LunaProfile.current.lidarrHeaders,
         backgroundUrl: widget.data.fanartURI(),
-        backgroundHeaders: LunaProfile.current.getLidarr()['headers'],
+        backgroundHeaders: LunaProfile.current.lidarrHeaders,
         posterIsSquare: true,
         onTap: () async => _enterArtist(),
         onLongPress: () async => _handlePopup(),
@@ -79,28 +81,12 @@ class _State extends State<LidarrCatalogueTile> {
   }
 
   Future<void> _enterArtist() async {
-    final dynamic result = await Navigator.of(context).pushNamed(
-      LidarrDetailsArtist.ROUTE_NAME,
-      arguments: LidarrDetailsArtistArguments(
-        data: widget.data,
-        artistID: widget.data.artistID,
-      ),
+    LidarrRoutes.ARTIST.go(
+      extra: widget.data,
+      params: {
+        'artist': widget.data.artistID.toString(),
+      },
     );
-    if (result != null)
-      switch (result[0]) {
-        case 'remove_artist':
-          {
-            showLunaSuccessSnackBar(
-              title: result[1] ? 'Removed (With Data)' : 'Removed',
-              message: widget.data.title,
-            );
-            widget.refresh();
-            break;
-          }
-        default:
-          LunaLogger().warning('LidarrCatalogueTile', '_enterArtist',
-              'Unknown Case: ${result[0]}');
-      }
   }
 
   Future<void> _handlePopup() async {
@@ -117,21 +103,18 @@ class _State extends State<LidarrCatalogueTile> {
           _removeArtist();
           break;
         default:
-          LunaLogger().warning('LidarrCatalogueTile', '_handlePopup',
-              'Invalid method passed through popup. (${values[1]})');
+          LunaLogger()
+              .warning('Invalid method passed through popup. (${values[1]})');
       }
   }
 
   Future<void> _enterEditArtist() async {
-    final dynamic result = await Navigator.of(context).pushNamed(
-      LidarrEditArtist.ROUTE_NAME,
-      arguments: LidarrEditArtistArguments(entry: widget.data),
+    LidarrRoutes.ARTIST_EDIT.go(
+      extra: widget.data,
+      params: {
+        'artist': widget.data.artistID.toString(),
+      },
     );
-    if (result != null && result[0])
-      showLunaSuccessSnackBar(
-        title: 'Updated',
-        message: widget.data.title,
-      );
   }
 
   Future<void> _refreshArtist() async {

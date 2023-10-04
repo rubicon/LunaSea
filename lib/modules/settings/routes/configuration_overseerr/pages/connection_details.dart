@@ -2,27 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/overseerr.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationOverseerrConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationOverseerrConnectionDetailsRouter()
-      : super('/settings/configuration/overseerr/connection');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationOverseerrConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationOverseerrConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationOverseerrConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationOverseerrConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -37,7 +29,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -51,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -65,7 +56,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.overseerrHost ?? '';
+    String host = LunaProfile.current.overseerrHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -73,7 +64,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       onTap: () async {
         Tuple2<bool, String> _values = await SettingsDialogs().editHost(
           context,
-          prefill: LunaProfile.current.overseerrHost ?? '',
+          prefill: LunaProfile.current.overseerrHost,
         );
         if (_values.item1) {
           LunaProfile.current.overseerrHost = _values.item2;
@@ -85,7 +76,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _apiKey() {
-    String apiKey = LunaProfile.current.overseerrKey ?? '';
+    String apiKey = LunaProfile.current.overseerrKey;
     return LunaBlock(
       title: 'settings.ApiKey'.tr(),
       body: [
@@ -116,43 +107,41 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       text: 'settings.TestConnection'.tr(),
       icon: LunaIcons.CONNECTION_TEST,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.overseerrHost == null || _profile.overseerrHost!.isEmpty) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.overseerrHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to Overseerr',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.OVERSEERR.title]),
           );
           return;
         }
-        if (_profile.overseerrKey == null || _profile.overseerrKey!.isEmpty) {
+        if (_profile.overseerrKey.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'API Key Required',
-            message: 'API key is required to connect to Overseerr',
+            title: 'settings.ApiKeyRequired'.tr(),
+            message: 'settings.ApiKeyRequiredMessage'
+                .tr(args: [LunaModule.OVERSEERR.title]),
           );
           return;
         }
-        Overseerr(
-          host: _profile.overseerrHost!,
-          apiKey: _profile.overseerrKey!,
-          headers: Map<String, dynamic>.from(_profile.overseerrHeaders ?? {}),
+        OverseerrAPI(
+          host: _profile.overseerrHost,
+          apiKey: _profile.overseerrKey,
+          headers: Map<String, dynamic>.from(_profile.overseerrHeaders),
         )
-            .status
             .getStatus()
             .then(
               (_) => showLunaSuccessSnackBar(
-                title: 'Connected Successfully',
-                message: 'Overseerr is ready to use with LunaSea',
+                title: 'settings.ConnectedSuccessfully'.tr(),
+                message: 'settings.ConnectedSuccessfullyMessage'
+                    .tr(args: [LunaModule.OVERSEERR.title]),
               ),
             )
             .catchError(
           (error, trace) {
-            LunaLogger().error(
-              'Connection Test Failed',
-              error,
-              trace,
-            );
+            LunaLogger().error('Connection Test Failed', error, trace);
             showLunaErrorSnackBar(
-              title: 'Connection Test Failed',
+              title: 'settings.ConnectionTestFailed'.tr(),
               error: error,
             );
           },
@@ -166,9 +155,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async {
-        SettingsConfigurationOverseerrHeadersRouter().navigateTo(context);
-      },
+      onTap:
+          SettingsRoutes.CONFIGURATION_OVERSEERR_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

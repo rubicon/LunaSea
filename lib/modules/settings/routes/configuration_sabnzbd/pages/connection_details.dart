@@ -2,27 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sabnzbd.dart';
 import 'package:lunasea/modules/settings.dart';
+import 'package:lunasea/router/routes/settings.dart';
 
-class SettingsConfigurationSABnzbdConnectionDetailsRouter
-    extends SettingsPageRouter {
-  SettingsConfigurationSABnzbdConnectionDetailsRouter()
-      : super('/settings/configuration/sabnzbd/connection');
-
-  @override
-  _Widget widget() => _Widget();
+class ConfigurationSABnzbdConnectionDetailsRoute extends StatefulWidget {
+  const ConfigurationSABnzbdConnectionDetailsRoute({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  void defineRoute(FluroRouter router) {
-    super.noParameterRouteDefinition(router);
-  }
+  State<ConfigurationSABnzbdConnectionDetailsRoute> createState() => _State();
 }
 
-class _Widget extends StatefulWidget {
-  @override
-  State<_Widget> createState() => _State();
-}
-
-class _State extends State<_Widget> with LunaScrollControllerMixin {
+class _State extends State<ConfigurationSABnzbdConnectionDetailsRoute>
+    with LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -37,7 +29,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _appBar() {
     return LunaAppBar(
-      title: 'Connection Details',
+      title: 'settings.ConnectionDetails'.tr(),
       scrollControllers: [scrollController],
     );
   }
@@ -51,9 +43,8 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _body() {
-    return ValueListenableBuilder(
-      valueListenable: Database.profiles.box.listenable(),
-      builder: (context, dynamic box, _) => LunaListView(
+    return LunaBox.profiles.listenableBuilder(
+      builder: (context, _) => LunaListView(
         controller: scrollController,
         children: [
           _host(),
@@ -65,7 +56,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _host() {
-    String host = LunaProfile.current.sabnzbdHost ?? '';
+    String host = LunaProfile.current.sabnzbdHost;
     return LunaBlock(
       title: 'settings.Host'.tr(),
       body: [TextSpan(text: host.isEmpty ? 'lunasea.NotSet'.tr() : host)],
@@ -85,7 +76,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
   }
 
   Widget _apiKey() {
-    String apiKey = LunaProfile.current.sabnzbdKey ?? '';
+    String apiKey = LunaProfile.current.sabnzbdKey;
     return LunaBlock(
       title: 'settings.ApiKey'.tr(),
       body: [
@@ -113,34 +104,37 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
 
   Widget _testConnection() {
     return LunaButton.text(
-      text: 'Test Connection',
+      text: 'settings.TestConnection'.tr(),
       icon: Icons.wifi_tethering_rounded,
       onTap: () async {
-        ProfileHiveObject _profile = LunaProfile.current;
-        if (_profile.sabnzbdHost == null || _profile.sabnzbdHost!.isEmpty) {
+        LunaProfile _profile = LunaProfile.current;
+        if (_profile.sabnzbdHost.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'Host Required',
-            message: 'Host is required to connect to SABnzbd',
+            title: 'settings.HostRequired'.tr(),
+            message: 'settings.HostRequiredMessage'
+                .tr(args: [LunaModule.SABNZBD.title]),
           );
           return;
         }
-        if (_profile.sabnzbdKey == null || _profile.sabnzbdKey!.isEmpty) {
+        if (_profile.sabnzbdKey.isEmpty) {
           showLunaErrorSnackBar(
-            title: 'API Key Required',
-            message: 'API key is required to connect to SABnzbd',
+            title: 'settings.ApiKeyRequired'.tr(),
+            message: 'settings.ApiKeyRequiredMessage'
+                .tr(args: [LunaModule.SABNZBD.title]),
           );
           return;
         }
         SABnzbdAPI.from(LunaProfile.current)
             .testConnection()
             .then((_) => showLunaSuccessSnackBar(
-                  title: 'Connected Successfully',
-                  message: 'SABnzbd is ready to use with LunaSea',
+                  title: 'settings.ConnectedSuccessfully'.tr(),
+                  message: 'settings.ConnectedSuccessfullyMessage'
+                      .tr(args: [LunaModule.SABNZBD.title]),
                 ))
             .catchError((error, trace) {
           LunaLogger().error('Connection Test Failed', error, trace);
           showLunaErrorSnackBar(
-            title: 'Connection Test Failed',
+            title: 'settings.ConnectionTestFailed'.tr(),
             error: error,
           );
         });
@@ -153,8 +147,7 @@ class _State extends State<_Widget> with LunaScrollControllerMixin {
       title: 'settings.CustomHeaders'.tr(),
       body: [TextSpan(text: 'settings.CustomHeadersDescription'.tr())],
       trailing: const LunaIconButton.arrow(),
-      onTap: () async =>
-          SettingsConfigurationSABnzbdHeadersRouter().navigateTo(context),
+      onTap: SettingsRoutes.CONFIGURATION_SABNZBD_CONNECTION_DETAILS_HEADERS.go,
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/tautulli.dart';
@@ -24,7 +23,7 @@ class TautulliCheckForUpdatesTautulliTile extends StatelessWidget {
     return Column(
       children: [
         LunaIconButton(
-          icon: LunaBrandIcons.tautulli,
+          icon: LunaIcons.TAUTULLI,
           color: LunaColours().byListIndex(1),
         ),
       ],

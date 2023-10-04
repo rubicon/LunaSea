@@ -1,4 +1,6 @@
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/duration/timestamp.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/radarr.dart';
 
 extension RadarrSystemStatusExtension on RadarrSystemStatus {
@@ -22,9 +24,8 @@ extension RadarrSystemStatusExtension on RadarrSystemStatus {
     return 'No';
   }
 
-  String get lunaDocker {
-    if (this.isDocker ?? false) return 'Yes';
-    return 'No';
+  bool get lunaIsDocker {
+    return this.isDocker ?? false;
   }
 
   String get lunaDBMigration {
@@ -53,7 +54,7 @@ extension RadarrSystemStatusExtension on RadarrSystemStatus {
     if (this.startTime != null && this.startTime!.isNotEmpty) {
       DateTime? _start = DateTime.tryParse(this.startTime!);
       if (_start != null)
-        return DateTime.now().difference(_start).lunaTimestampWords;
+        return DateTime.now().difference(_start).asWordsTimestamp();
     }
     return LunaUI.TEXT_EMDASH;
   }

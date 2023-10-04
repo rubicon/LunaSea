@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/firebase/firestore.dart';
+import 'package:lunasea/firebase/storage.dart';
+import 'package:lunasea/firebase/types.dart';
 import 'package:lunasea/modules/settings.dart';
 
 class SettingsAccountDeleteConfigurationTile extends StatefulWidget {
@@ -48,8 +51,8 @@ class _State extends State<SettingsAccountDeleteConfigurationTile> {
           updateState(LunaLoadingState.INACTIVE);
           showLunaSuccessSnackBar(
             title: 'settings.DeleteCloudBackupSuccess'.tr(),
-            message:
-                result.item2!.title!.replaceAll('\n', ' ${LunaUI.TEXT_EMDASH} '),
+            message: result.item2!.title!
+                .replaceAll('\n', ' ${LunaUI.TEXT_EMDASH} '),
           );
         }).catchError((error, stack) {
           LunaLogger().error('Firebase Backup Deletion Failed', error, stack);

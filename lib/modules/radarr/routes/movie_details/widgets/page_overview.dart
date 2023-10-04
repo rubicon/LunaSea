@@ -30,7 +30,6 @@ class _State extends State<RadarrMovieDetailsOverviewPage>
     super.build(context);
     return LunaScaffold(
       module: LunaModule.RADARR,
-      hideDrawer: true,
       scaffoldKey: _scaffoldKey,
       body: Selector<RadarrState, Future<List<RadarrMovie>>?>(
         selector: (_, state) => state.movies,
@@ -38,7 +37,6 @@ class _State extends State<RadarrMovieDetailsOverviewPage>
           controller: RadarrMovieDetailsNavigationBar.scrollControllers[0],
           children: [
             RadarrMovieDetailsOverviewDescriptionTile(movie: widget.movie),
-            RadarrMovieDetailsOverviewLinksSection(movie: widget.movie),
             RadarrMovieDetailsOverviewInformationBlock(
               movie: widget.movie,
               qualityProfile: widget.qualityProfile,

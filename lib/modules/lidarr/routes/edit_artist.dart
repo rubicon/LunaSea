@@ -2,31 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/lidarr.dart';
+import 'package:lunasea/router/router.dart';
 
-class LidarrEditArtistArguments {
-  final LidarrCatalogueData? entry;
+class ArtistEditRoute extends StatefulWidget {
+  final LidarrCatalogueData? data;
+  final int? artistId;
 
-  LidarrEditArtistArguments({
-    required this.entry,
-  });
-}
-
-class LidarrEditArtist extends StatefulWidget {
-  static const ROUTE_NAME = '/lidarr/edit/artist';
-
-  const LidarrEditArtist({
+  const ArtistEditRoute({
     Key? key,
+    required this.data,
+    required this.artistId,
   }) : super(key: key);
 
   @override
-  State<LidarrEditArtist> createState() => _State();
+  State<ArtistEditRoute> createState() => _State();
 }
 
-class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
+class _State extends State<ArtistEditRoute> with LunaScrollControllerMixin {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  LidarrEditArtistArguments? _arguments;
-  Future<void>? _future;
+  Future<bool>? _future;
 
   List<LidarrQualityProfile> _qualityProfiles = [];
   List<LidarrMetadataProfile> _metadataProfiles = [];
@@ -39,9 +33,7 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
-      setState(() => _arguments = ModalRoute.of(context)!.settings.arguments
-          as LidarrEditArtistArguments?);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       _refresh();
     });
   }
@@ -50,18 +42,22 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
   Widget build(BuildContext context) => LunaScaffold(
         scaffoldKey: _scaffoldKey,
         body: _body,
-        appBar: _appBar as PreferredSizeWidget?,
+        appBar: _appBar,
         bottomNavigationBar: _bottomActionBar(),
       );
 
-  Future<void> _refresh() async => setState(() => {_future = _fetch()});
+  Future<void> _refresh() async {
+    setState(() {
+      _future = _fetch();
+    });
+  }
 
   Future<bool> _fetch() async {
     final _api = LidarrAPI.from(LunaProfile.current);
     return _fetchProfiles(_api).then((_) => _fetchMetadata(_api)).then((_) {
-      _path = _arguments!.entry!.path;
-      _monitored = _arguments!.entry!.monitored;
-      _albumFolders = _arguments!.entry!.albumFolders;
+      _path = widget.data!.path;
+      _monitored = widget.data!.monitored;
+      _albumFolders = widget.data!.albumFolders;
       return true;
     });
   }
@@ -71,7 +67,7 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
       _qualityProfiles = profiles.values.toList();
       if (_qualityProfiles.isNotEmpty) {
         for (var profile in _qualityProfiles) {
-          if (profile.id == _arguments!.entry!.qualityProfile) {
+          if (profile.id == widget.data!.qualityProfile) {
             _qualityProfile = profile;
           }
         }
@@ -84,7 +80,7 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
       _metadataProfiles = metadatas.values.toList();
       if (_metadataProfiles.isNotEmpty) {
         for (var profile in _metadataProfiles) {
-          if (profile.id == _arguments!.entry!.metadataProfile) {
+          if (profile.id == widget.data!.metadataProfile) {
             _metadataProfile = profile;
           }
         }
@@ -92,10 +88,12 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
     });
   }
 
-  Widget get _appBar => LunaAppBar(
-        title: _arguments?.entry?.title ?? 'Edit Artist',
-        scrollControllers: [scrollController],
-      );
+  PreferredSizeWidget get _appBar {
+    return LunaAppBar(
+      title: widget.data?.title ?? 'Edit Artist',
+      scrollControllers: [scrollController],
+    );
+  }
 
   Widget _bottomActionBar() {
     return LunaBottomActionBar(
@@ -181,7 +179,7 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
     final _api = LidarrAPI.from(LunaProfile.current);
     await _api
         .editArtist(
-      _arguments!.entry!.artistID,
+      widget.data!.artistID,
       _qualityProfile!,
       _metadataProfile!,
       _path,
@@ -189,14 +187,18 @@ class _State extends State<LidarrEditArtist> with LunaScrollControllerMixin {
       _albumFolders,
     )
         .then((_) {
-      _arguments!.entry!.qualityProfile = _qualityProfile!.id;
-      _arguments!.entry!.quality = _qualityProfile!.name;
-      _arguments!.entry!.metadataProfile = _metadataProfile!.id;
-      _arguments!.entry!.metadata = _metadataProfile!.name;
-      _arguments!.entry!.path = _path;
-      _arguments!.entry!.monitored = _monitored;
-      _arguments!.entry!.albumFolders = _albumFolders;
-      Navigator.of(context).pop([true]);
+      widget.data!.qualityProfile = _qualityProfile!.id;
+      widget.data!.quality = _qualityProfile!.name;
+      widget.data!.metadataProfile = _metadataProfile!.id;
+      widget.data!.metadata = _metadataProfile!.name;
+      widget.data!.path = _path;
+      widget.data!.monitored = _monitored;
+      widget.data!.albumFolders = _albumFolders;
+      showLunaSuccessSnackBar(
+        title: 'Artist Updated',
+        message: widget.data!.title,
+      );
+      LunaRouter.router.pop();
     }).catchError((error, stack) {
       LunaLogger().error('Failed to update artist', error, stack);
       showLunaErrorSnackBar(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
 import 'package:lunasea/modules/tautulli.dart';
+import 'package:lunasea/router/routes/tautulli.dart';
 
 class TautulliHistoryTile extends StatelessWidget {
   final TautulliHistoryRecord history;
@@ -35,11 +37,14 @@ class TautulliHistoryTile extends StatelessWidget {
                 history.ratingKey ??
                 '' as int?,
           ),
-      onTap: () async => TautulliHistoryDetailsRouter().navigateTo(
-        context,
-        history.ratingKey!,
-        history.sessionKey,
-        history.referenceId,
+      onTap: () => TautulliRoutes.HISTORY_DETAILS.go(
+        queryParams: {
+          'reference_id': history.referenceId.toString(),
+          'session_key': history.sessionKey.toString(),
+        },
+        params: {
+          'rating_key': history.ratingKey!.toString(),
+        },
       ),
     );
   }
@@ -51,7 +56,7 @@ class TautulliHistoryTile extends StatelessWidget {
           TextSpan(
             children: [
               TextSpan(text: 'Season ${history.parentMediaIndex}'),
-              TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+              TextSpan(text: LunaUI.TEXT_BULLET.pad()),
               TextSpan(text: 'Episode ${history.mediaIndex}: '),
               TextSpan(
                 text: history.title,
@@ -65,7 +70,7 @@ class TautulliHistoryTile extends StatelessWidget {
           TextSpan(
             children: [
               TextSpan(text: history.title),
-              TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+              TextSpan(text: LunaUI.TEXT_BULLET.pad()),
               TextSpan(text: history.parentTitle),
             ],
           ),

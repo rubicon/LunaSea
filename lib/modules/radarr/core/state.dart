@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/types/list_view_option.dart';
 
 class RadarrState extends LunaModuleState {
   RadarrState() {
@@ -44,8 +44,8 @@ class RadarrState extends LunaModuleState {
   ///////////////
 
   /// API handler instance
-  Radarr? _api;
-  Radarr? get api => _api;
+  RadarrAPI? _api;
+  RadarrAPI? get api => _api;
 
   /// Is the API enabled?
   bool _enabled = false;
@@ -65,16 +65,16 @@ class RadarrState extends LunaModuleState {
 
   /// Reset the profile data, reinitializes API instance
   void resetProfile() {
-    ProfileHiveObject _profile = LunaProfile.current;
+    LunaProfile _profile = LunaProfile.current;
     // Copy profile into state
-    _enabled = _profile.radarrEnabled ?? false;
-    _host = _profile.radarrHost ?? '';
-    _apiKey = _profile.radarrKey ?? '';
-    _headers = _profile.radarrHeaders ?? {};
+    _enabled = _profile.radarrEnabled;
+    _host = _profile.radarrHost;
+    _apiKey = _profile.radarrKey;
+    _headers = _profile.radarrHeaders;
     // Create the API instance if Radarr is enabled
     _api = !_enabled
         ? null
-        : Radarr(
+        : RadarrAPI(
             host: _host,
             apiKey: _apiKey,
             headers: Map<String, dynamic>.from(_headers),
@@ -93,7 +93,7 @@ class RadarrState extends LunaModuleState {
   }
 
   LunaListViewOption? _moviesViewType =
-      RadarrDatabaseValue.DEFAULT_VIEW_MOVIES.data;
+      RadarrDatabase.DEFAULT_VIEW_MOVIES.read();
   LunaListViewOption get moviesViewType => _moviesViewType!;
   set moviesViewType(LunaListViewOption moviesViewType) {
     _moviesViewType = moviesViewType;
@@ -101,7 +101,7 @@ class RadarrState extends LunaModuleState {
   }
 
   RadarrMoviesSorting? _moviesSortType =
-      RadarrDatabaseValue.DEFAULT_SORTING_MOVIES.data;
+      RadarrDatabase.DEFAULT_SORTING_MOVIES.read();
   RadarrMoviesSorting get moviesSortType => _moviesSortType!;
   set moviesSortType(RadarrMoviesSorting moviesSortType) {
     _moviesSortType = moviesSortType;
@@ -109,7 +109,7 @@ class RadarrState extends LunaModuleState {
   }
 
   RadarrMoviesFilter? _moviesFilterType =
-      RadarrDatabaseValue.DEFAULT_FILTERING_MOVIES.data;
+      RadarrDatabase.DEFAULT_FILTERING_MOVIES.read();
   RadarrMoviesFilter get moviesFilterType => _moviesFilterType!;
   set moviesFilterType(RadarrMoviesFilter moviesFilterType) {
     _moviesFilterType = moviesFilterType;
@@ -117,7 +117,7 @@ class RadarrState extends LunaModuleState {
   }
 
   bool? _moviesSortAscending =
-      RadarrDatabaseValue.DEFAULT_SORTING_MOVIES_ASCENDING.data;
+      RadarrDatabase.DEFAULT_SORTING_MOVIES_ASCENDING.read();
   bool get moviesSortAscending => _moviesSortAscending!;
   set moviesSortAscending(bool moviesSortAscending) {
     _moviesSortAscending = moviesSortAscending;
@@ -296,7 +296,7 @@ class RadarrState extends LunaModuleState {
   Timer? _getQueueTimer;
 
   void createQueueTimer() => _getQueueTimer = Timer.periodic(
-        Duration(seconds: RadarrDatabaseValue.QUEUE_REFRESH_RATE.data),
+        Duration(seconds: RadarrDatabase.QUEUE_REFRESH_RATE.read()),
         (_) => fetchQueue(),
       );
 
@@ -312,8 +312,7 @@ class RadarrState extends LunaModuleState {
   void fetchQueue() {
     cancelQueueTimer();
     if (_api != null) {
-      _queue =
-          _api!.queue.get(pageSize: RadarrDatabaseValue.QUEUE_PAGE_SIZE.data);
+      _queue = _api!.queue.get(pageSize: RadarrDatabase.QUEUE_PAGE_SIZE.read());
       createQueueTimer();
     }
     notifyListeners();

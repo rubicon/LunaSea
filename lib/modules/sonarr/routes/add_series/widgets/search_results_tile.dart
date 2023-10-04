@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
+import 'package:lunasea/extensions/string/string.dart';
+import 'package:lunasea/extensions/string/links.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
 
 class SonarrSeriesAddSearchResultTile extends StatefulWidget {
   static final double extent = LunaBlock.calculateItemExtent(
@@ -48,9 +51,9 @@ class _State extends State<SonarrSeriesAddSearchResultTile> {
   TextSpan _subtitle1() {
     return TextSpan(children: [
       TextSpan(text: widget.series.lunaSeasonCount),
-      TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+      TextSpan(text: LunaUI.TEXT_BULLET.pad()),
       TextSpan(text: widget.series.lunaYear),
-      TextSpan(text: LunaUI.TEXT_BULLET.lunaPad()),
+      TextSpan(text: LunaUI.TEXT_BULLET.pad()),
       TextSpan(text: widget.series.lunaNetwork),
     ]);
   }
@@ -83,15 +86,12 @@ class _State extends State<SonarrSeriesAddSearchResultTile> {
         widget.series.overview ?? 'sonarr.NoSummaryAvailable'.tr(),
       );
     } else if (widget.exists) {
-      SonarrSeriesDetailsRouter().navigateTo(
-        context,
-        widget.series.id ?? -1,
-      );
+      SonarrRoutes.SERIES.go(params: {'series': widget.series.id!.toString()});
     } else {
-      SonarrAddSeriesDetailsRouter().navigateTo(context, widget.series);
+      SonarrRoutes.ADD_SERIES_DETAILS.go(extra: widget.series);
     }
   }
 
   Future<void>? _onLongPress() async =>
-      widget.series.tvdbId?.toString().lunaOpenTheTVDB();
+      widget.series.tvdbId?.toString().openTvdbSeries();
 }

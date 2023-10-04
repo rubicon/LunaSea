@@ -2,51 +2,14 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/modules/sonarr/routes/series_details/sheets/links.dart';
+import 'package:lunasea/router/routes/sonarr.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
 
-class SonarrSeriesDetailsRouter extends SonarrPageRouter {
-  SonarrSeriesDetailsRouter() : super('/sonarr/series/:seriesid');
-
-  @override
-  _SonarrSeriesDetails widget([
-    int seriesId = -1,
-  ]) {
-    return _SonarrSeriesDetails(seriesId: seriesId);
-  }
-
-  @override
-  Future<void> navigateTo(
-    BuildContext context, [
-    int seriesId = -1,
-  ]) async {
-    return LunaRouter.router.navigateTo(context, route(seriesId));
-  }
-
-  @override
-  String route([int seriesId = -1]) {
-    return fullRoute.replaceFirst(
-      ':seriesid',
-      seriesId.toString(),
-    );
-  }
-
-  @override
-  void defineRoute(FluroRouter router) {
-    super.withParameterRouteDefinition(
-      router,
-      (context, params) {
-        int seriesId = (params['seriesid']?.isNotEmpty ?? false)
-            ? (int.tryParse(params['seriesid']![0]) ?? -1)
-            : -1;
-        return _SonarrSeriesDetails(seriesId: seriesId);
-      },
-    );
-  }
-}
-
-class _SonarrSeriesDetails extends StatefulWidget {
+class SeriesDetailsRoute extends StatefulWidget {
   final int seriesId;
 
-  const _SonarrSeriesDetails({
+  const SeriesDetailsRoute({
     Key? key,
     required this.seriesId,
   }) : super(key: key);
@@ -55,7 +18,7 @@ class _SonarrSeriesDetails extends StatefulWidget {
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<_SonarrSeriesDetails> with LunaLoadCallbackMixin {
+class _State extends State<SeriesDetailsRoute> with LunaLoadCallbackMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   SonarrSeries? series;
   PageController? _pageController;
@@ -77,7 +40,7 @@ class _State extends State<_SonarrSeriesDetails> with LunaLoadCallbackMixin {
   void initState() {
     super.initState();
     _pageController = PageController(
-      initialPage: SonarrDatabaseValue.NAVIGATION_INDEX_SERIES_DETAILS.data,
+      initialPage: SonarrDatabase.NAVIGATION_INDEX_SERIES_DETAILS.read(),
     );
   }
 
@@ -109,7 +72,7 @@ class _State extends State<_SonarrSeriesDetails> with LunaLoadCallbackMixin {
   @override
   Widget build(BuildContext context) {
     if (widget.seriesId <= 0) {
-      return LunaInvalidRoute(
+      return InvalidRoutePage(
         title: 'sonarr.SeriesDetails'.tr(),
         message: 'sonarr.SeriesNotFound'.tr(),
       );
@@ -125,18 +88,25 @@ class _State extends State<_SonarrSeriesDetails> with LunaLoadCallbackMixin {
   }
 
   Widget _appBar() {
-    List<Widget>? _actions = series == null
-        ? null
-        : [
-            LunaIconButton(
-              icon: Icons.edit_rounded,
-              onPressed: () async => SonarrEditSeriesRouter().navigateTo(
-                context,
-                widget.seriesId,
-              ),
-            ),
-            SonarrAppBarSeriesSettingsAction(seriesId: widget.seriesId),
-          ];
+    List<Widget>? _actions;
+
+    if (series != null) {
+      _actions = [
+        LunaIconButton(
+          icon: LunaIcons.LINK,
+          onPressed: () => LinksSheet(series: series!).show(),
+        ),
+        LunaIconButton(
+          icon: LunaIcons.EDIT,
+          onPressed: () {
+            SonarrRoutes.SERIES_EDIT.go(
+              params: {'series': widget.seriesId.toString()},
+            );
+          },
+        ),
+        SonarrAppBarSeriesSettingsAction(seriesId: widget.seriesId),
+      ];
+    }
     return LunaAppBar(
       title: 'sonarr.SeriesDetails'.tr(),
       scrollControllers: SonarrSeriesDetailsNavigationBar.scrollControllers,

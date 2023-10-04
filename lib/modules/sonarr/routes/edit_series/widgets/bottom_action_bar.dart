@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/sonarr.dart';
+import 'package:lunasea/router/router.dart';
 
 class SonarrEditSeriesActionBar extends StatelessWidget {
   const SonarrEditSeriesActionBar({
@@ -34,7 +35,7 @@ class SonarrEditSeriesActionBar extends StatelessWidget {
           context: context,
           series: series,
         );
-        if (result) Navigator.of(context).lunaSafetyPop();
+        if (result) LunaRouter().popSafely();
       }
     }
   }

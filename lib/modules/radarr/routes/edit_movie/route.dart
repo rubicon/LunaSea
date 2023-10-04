@@ -1,49 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/widgets/pages/invalid_route.dart';
 
-class RadarrMoviesEditRouter extends RadarrPageRouter {
-  RadarrMoviesEditRouter() : super('/radarr/editmovie/:movieid');
-
-  @override
-  Widget widget([
-    int movieId = -1,
-  ]) {
-    return _Widget(movieId: movieId);
-  }
-
-  @override
-  Future<void> navigateTo(
-    BuildContext context, [
-    int movieId = -1,
-  ]) async {
-    LunaRouter.router.navigateTo(context, route(movieId));
-  }
-
-  @override
-  String route([
-    int movieId = -1,
-  ]) {
-    return fullRoute.replaceFirst(':movieid', movieId.toString());
-  }
-
-  @override
-  void defineRoute(
-    FluroRouter router,
-  ) {
-    super.withParameterRouteDefinition(router, (context, params) {
-      int movieId = params['movieid'] == null || params['movieid']!.isEmpty
-          ? -1
-          : (int.tryParse(params['movieid']![0]) ?? -1);
-      return _Widget(movieId: movieId);
-    });
-  }
-}
-
-class _Widget extends StatefulWidget {
+class MovieEditRoute extends StatefulWidget {
   final int movieId;
 
-  const _Widget({
+  const MovieEditRoute({
     Key? key,
     required this.movieId,
   }) : super(key: key);
@@ -52,7 +15,7 @@ class _Widget extends StatefulWidget {
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<_Widget>
+class _State extends State<MovieEditRoute>
     with LunaLoadCallbackMixin, LunaScrollControllerMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -65,7 +28,7 @@ class _State extends State<_Widget>
   @override
   Widget build(BuildContext context) {
     if (widget.movieId <= 0) {
-      return LunaInvalidRoute(
+      return InvalidRoutePage(
         title: 'radarr.EditMovie'.tr(),
         message: 'radarr.MovieNotFound'.tr(),
       );

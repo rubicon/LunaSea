@@ -1,8 +1,9 @@
-import 'dart:math';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:lunasea/core.dart';
 import 'package:lunasea/modules/radarr.dart';
+import 'package:lunasea/router/routes/radarr.dart';
+import 'package:lunasea/types/list_view_option.dart';
 
 class RadarrCatalogueRoute extends StatefulWidget {
   const RadarrCatalogueRoute({
@@ -40,12 +41,11 @@ class _State extends State<RadarrCatalogueRoute>
     return LunaScaffold(
       scaffoldKey: _scaffoldKey,
       body: _body(),
-      appBar: _appBar() as PreferredSizeWidget?,
-      hideDrawer: true,
+      appBar: _appBar(),
     );
   }
 
-  Widget _appBar() {
+  PreferredSizeWidget _appBar() {
     return LunaAppBar.empty(
       child: RadarrCatalogueSearchBar(
         scrollController: RadarrNavigationBar.scrollControllers[0],
@@ -148,10 +148,9 @@ class _State extends State<RadarrCatalogueRoute>
                             ])
                           : 'radarr.SearchFor'.tr(args: ['"$query"']),
                       backgroundColor: LunaColours.accent,
-                      onTap: () async => RadarrAddMovieRouter().navigateTo(
-                        context,
-                        query,
-                      ),
+                      onTap: () => RadarrRoutes.ADD_MOVIE.go(queryParams: {
+                        'query': query,
+                      }),
                     ),
                   ],
                 ),
