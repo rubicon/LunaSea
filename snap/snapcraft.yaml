@@ -1,7 +1,7 @@
 name: lunasea
-version: 10.2.6
+version: 11.0.0
 confinement: strict
-base: core18
+base: core22
 # Required but managed manually via Snapcraft dashboard
 summary: summary
 description: description
@@ -14,19 +14,18 @@ apps:
   lunasea:
     command: lunasea
     extensions:
-      - flutter-stable
+    - gnome
     plugs:
-      - home
-      - network
+    - home
+    - network
     slots:
-      - dbus-lunasea
+    - dbus-lunasea
 parts:
   zenity:
     plugin: nil
     stage-packages:
-      - zenity
+    - zenity
   lunasea:
     source: .
     plugin: flutter
-    flutter-revision: stable
     flutter-target: lib/main.dart

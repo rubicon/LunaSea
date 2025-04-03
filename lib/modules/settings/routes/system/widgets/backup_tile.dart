@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:lunasea/core.dart';
 import 'package:lunasea/database/config.dart';
-import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/system/filesystem/filesystem.dart';
-import 'package:lunasea/utils/encryption.dart';
 
 class SettingsSystemBackupRestoreBackupTile extends StatelessWidget {
   const SettingsSystemBackupRestoreBackupTile({
@@ -22,22 +21,18 @@ class SettingsSystemBackupRestoreBackupTile extends StatelessWidget {
 
   Future<void> _backup(BuildContext context) async {
     try {
-      final _values = await SettingsDialogs().backupConfiguration(context);
-      if (_values.item1) {
-        String data = LunaConfig().export();
-        String encrypted = LunaEncryption().encrypt(_values.item2, data);
-        String name = DateFormat('y-MM-dd kk-mm-ss').format(DateTime.now());
-        bool result = await LunaFileSystem().save(
-          context,
-          '$name.lunasea',
-          utf8.encode(encrypted),
+      String data = LunaConfig().export();
+      String name = DateFormat('y-MM-dd kk-mm-ss').format(DateTime.now());
+      bool result = await LunaFileSystem().save(
+        context,
+        '$name.lunasea',
+        data.codeUnits,
+      );
+      if (result) {
+        showLunaSuccessSnackBar(
+          title: 'settings.BackupToCloudSuccess'.tr(),
+          message: '$name.lunasea',
         );
-        if (result) {
-          showLunaSuccessSnackBar(
-            title: 'settings.BackupToCloudSuccess'.tr(),
-            message: '$name.lunasea',
-          );
-        }
       }
     } catch (error, stack) {
       LunaLogger().error('Failed to create device backup', error, stack);

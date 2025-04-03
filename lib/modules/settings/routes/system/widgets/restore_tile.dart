@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'package:lunasea/core.dart';
 import 'package:lunasea/database/config.dart';
-import 'package:lunasea/modules/settings.dart';
 import 'package:lunasea/system/filesystem/file.dart';
 import 'package:lunasea/system/filesystem/filesystem.dart';
-import 'package:lunasea/utils/encryption.dart';
 
 class SettingsSystemBackupRestoreRestoreTile extends StatelessWidget {
   const SettingsSystemBackupRestoreRestoreTile({
@@ -38,25 +37,21 @@ class SettingsSystemBackupRestoreRestoreTile extends StatelessWidget {
     BuildContext context,
     LunaFile file,
   ) async {
-    Tuple2<bool, String> _key = await SettingsDialogs().decryptBackup(context);
-    if (_key.item1) {
-      String encrypted = String.fromCharCodes(file.data);
-      try {
-        String decrypted = LunaEncryption().decrypt(_key.item2, encrypted);
-        await LunaConfig().import(context, decrypted);
-        showLunaSuccessSnackBar(
-          title: 'settings.RestoreFromCloudSuccess'.tr(),
-          message: 'settings.RestoreFromCloudSuccessMessage'.tr(),
-        );
-      } catch (_) {
-        showLunaErrorSnackBar(
-          title: 'settings.RestoreFromCloudFailure'.tr(),
-          message: 'lunasea.IncorrectEncryptionKey'.tr(),
-          showButton: true,
-          buttonText: 'lunasea.Retry'.tr(),
-          buttonOnPressed: () async => _decryptBackup(context, file),
-        );
-      }
+    String encrypted = String.fromCharCodes(file.data);
+    try {
+      await LunaConfig().import(context, encrypted);
+      showLunaSuccessSnackBar(
+        title: 'settings.RestoreFromCloudSuccess'.tr(),
+        message: 'settings.RestoreFromCloudSuccessMessage'.tr(),
+      );
+    } catch (_) {
+      showLunaErrorSnackBar(
+        title: 'settings.RestoreFromCloudFailure'.tr(),
+        message: 'lunasea.IncorrectEncryptionKey'.tr(),
+        showButton: true,
+        buttonText: 'lunasea.Retry'.tr(),
+        buttonOnPressed: () async => _decryptBackup(context, file),
+      );
     }
   }
 }
